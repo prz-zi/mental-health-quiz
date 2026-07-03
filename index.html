@@ -208,6 +208,18 @@ body {
 .submit-btn.correct { background: var(--success); box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3); }
 .submit-btn.wrong { background: var(--danger); box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3); }
 
+/* ===== Quiz Question Block ===== */
+.quiz-question-block {
+  border: 1px solid var(--border);
+  border-radius: var(--radius);
+  padding: 16px;
+  margin-top: 16px;
+  background: #fafbfc;
+  transition: border-color 0.3s;
+}
+.quiz-question-block .options { margin-top: 12px; }
+.quiz-question-block .option { cursor: pointer; }
+
 /* ===== Answer Reveal ===== */
 .answer-reveal {
   margin-top: 12px;
@@ -429,6 +441,7 @@ const STATE = {
   quizQuestions: [],
   quizAnswers: {},
   quizSubmitted: false,
+  quizGraded: {},          // per-question grading status: { qi: true/false }
   quizTimer: 0,
   quizTimerInterval: null,
   quizCount: 20,
@@ -805,6 +818,7 @@ function startQuiz() {
   const shuffled = [...pool].sort(() => Math.random() - 0.5);
   STATE.quizQuestions = shuffled.slice(0, count);
   STATE.quizAnswers = {};
+  STATE.quizGraded = {};
   STATE.quizSubmitted = false;
 
   // Start timer
@@ -827,34 +841,69 @@ function startQuiz() {
 function renderQuizQuestions() {
   let html = '';
   const total = STATE.quizQuestions.length;
-  const answered = Object.keys(STATE.quizAnswers).length;
+  const gradedCount = Object.keys(STATE.quizGraded).length;
 
   // Timer
   html += `<div class="card"><div class="quiz-timer" id="quiz-timer">⏱ 00:00</div>`;
   // Progress
-  html += `<div class="progress-bar"><div class="fill" style="width:${(answered/total*100).toFixed(0)}%"></div></div>`;
-  html += `<div style="text-align:center;color:var(--text-secondary);margin-bottom:12px;">已答 ${answered} / ${total} 题</div>`;
+  html += `<div class="progress-bar"><div class="fill" style="width:${(gradedCount/total*100).toFixed(0)}%"></div></div>`;
+  html += `<div style="text-align:center;color:var(--text-secondary);margin-bottom:12px;">已批改 ${gradedCount} / ${total} 题</div>`;
 
   // Questions
   STATE.quizQuestions.forEach((q, qi) => {
+    const graded = STATE.quizGraded[qi];
+    html += `<div class="quiz-question-block" id="quiz-q-${qi}">`;
     html += `<div class="question-meta" style="margin-top:${qi>0?'24':'0'}">`;
     html += `${typeBadge(q.type)} <span class="question-number">第 ${qi+1} 题</span>`;
+    if (graded === true) {
+      html += '<span style="color:var(--success);margin-left:8px;font-weight:600;">✅ 正确</span>';
+    } else if (graded === false) {
+      html += '<span style="color:var(--danger);margin-left:8px;font-weight:600;">❌ 错误</span>';
+    }
     html += '</div>';
     html += `<div class="question-text">${escHtml(q.question)}</div>`;
     html += '<div class="options">';
     q.options.forEach((opt, oi) => {
       const letter = String.fromCharCode(65 + oi);
       const userAns = STATE.quizAnswers[qi] || [];
-      const selected = userAns.includes(letter) ? ' selected' : '';
-      html += `<div class="option${selected}" data-qi="${qi}" data-letter="${letter}"
-        onclick="quizSelect(${qi}, '${letter}', this)">${escHtml(opt)}</div>`;
+      let cls = '';
+      if (graded !== undefined) {
+        if (q.answer.includes(letter)) cls = ' correct';
+        else if (userAns.includes(letter)) cls = ' wrong';
+        else cls = ' show-correct';
+      } else if (userAns.includes(letter)) {
+        cls = ' selected';
+      }
+      html += `<div class="option${cls}" data-qi="${qi}" data-letter="${letter}"
+        onclick="${graded === undefined ? `quizSelect(${qi}, '${letter}', this)` : ''}">${escHtml(opt)}</div>`;
     });
     html += '</div>';
+
+    // Individual submit button + grading result
+    html += '<div class="submit-area">';
+    if (graded === undefined) {
+      html += `<button class="submit-btn" id="quiz-btn-${qi}" onclick="quizGradeOne(${qi})">📝 提交答案</button>`;
+    }
+    html += `<div class="answer-reveal${graded !== undefined ? ' show' : ''}${graded === false ? ' grade-wrong' : ''}${graded === true ? ' grade-correct' : ''}" id="quiz-reveal-${qi}">`;
+    if (graded === true) {
+      html += `<span style="color:var(--success);font-weight:600;">🎉 回答正确！答案：${normalizeAnswer(q, q.answer)}</span>`;
+    } else if (graded === false) {
+      const userAns = (STATE.quizAnswers[qi] || []).join(', ') || '未选择';
+      html += `<span style="color:var(--danger);font-weight:600;">❌ 你的答案：${userAns}</span>`;
+      html += `<span style="color:var(--success);font-weight:600;margin-left:12px;">正确答案：${normalizeAnswer(q, q.answer)}</span>`;
+    }
+    html += '</div>';
+    html += '</div>';
+
+    html += '</div>'; // quiz-question-block
   });
 
   html += '<div class="nav-buttons mt-20">';
   html += `<button class="nav-btn" onclick="resetQuiz()">🔄 重新设置</button>`;
-  html += `<button class="nav-btn primary" onclick="submitQuiz()">📩 提交答案 (${answered}/${total})</button>`;
+  if (gradedCount < total) {
+    html += `<button class="nav-btn primary" onclick="quizGradeAll()">📩 一键提交全部 (${gradedCount}/${total})</button>`;
+  }
+  html += `<button class="nav-btn" onclick="submitQuizFinal()">📊 查看成绩</button>`;
   html += '</div></div>';
 
   document.getElementById('tab-quiz').innerHTML = html;
@@ -870,6 +919,7 @@ function renderQuizQuestions() {
 
 function quizSelect(qi, letter, el) {
   if (STATE.quizSubmitted) return;
+  if (STATE.quizGraded[qi] !== undefined) return;  // already graded, no changes
   const q = STATE.quizQuestions[qi];
 
   if (!STATE.quizAnswers[qi]) STATE.quizAnswers[qi] = [];
@@ -892,31 +942,83 @@ function quizSelect(qi, letter, el) {
     }
   }
 
-  // Update progress
-  const answered = Object.keys(STATE.quizAnswers).length;
-  const total = STATE.quizQuestions.length;
-  const pb = document.querySelector('#tab-quiz .progress-bar .fill');
-  if (pb) pb.style.width = `${(answered/total*100).toFixed(0)}%`;
-  const status = document.querySelector('#tab-quiz div[style]');
 }
 
-function submitQuiz() {
-  if (STATE.quizSubmitted) return;
-  const unanswered = STATE.quizQuestions.length - Object.keys(STATE.quizAnswers).length;
-  if (unanswered > 0) {
-    if (!confirm(`还有 ${unanswered} 题未作答，确定提交吗？`)) return;
+// Grade a single question individually
+function quizGradeOne(qi) {
+  const q = STATE.quizQuestions[qi];
+  const userAns = STATE.quizAnswers[qi] || [];
+
+  // If nothing selected, prompt
+  if (userAns.length === 0) {
+    const revealEl = document.getElementById(`quiz-reveal-${qi}`);
+    if (revealEl) {
+      revealEl.innerHTML = '<span style="color:var(--warning);">⚠️ 请先选择一个答案</span>';
+      revealEl.classList.add('show', 'grade-wrong');
+      setTimeout(() => revealEl.classList.remove('show', 'grade-wrong'), 2000);
+    }
+    return;
+  }
+
+  const isCorrect = checkAnswer(q, userAns);
+  STATE.quizGraded[qi] = isCorrect;
+  recordAnswer(q.id, userAns, isCorrect);
+
+  // Re-render just this question block
+  renderQuizQuestions();
+
+  // Check if all are now graded
+  checkQuizComplete();
+}
+
+// Grade all remaining questions at once
+function quizGradeAll() {
+  STATE.quizQuestions.forEach((q, qi) => {
+    if (STATE.quizGraded[qi] === undefined) {
+      const userAns = STATE.quizAnswers[qi] || [];
+      if (userAns.length > 0) {
+        const isCorrect = checkAnswer(q, userAns);
+        STATE.quizGraded[qi] = isCorrect;
+        recordAnswer(q.id, userAns, isCorrect);
+      }
+    }
+  });
+  renderQuizQuestions();
+  checkQuizComplete();
+}
+
+function checkQuizComplete() {
+  // If all questions graded, stop timer
+  if (Object.keys(STATE.quizGraded).length >= STATE.quizQuestions.length) {
+    clearInterval(STATE.quizTimerInterval);
+  }
+}
+
+function submitQuizFinal() {
+  const graded = Object.keys(STATE.quizGraded).length;
+  const total = STATE.quizQuestions.length;
+  if (graded < total) {
+    if (!confirm(`还有 ${total - graded} 题未批改，确定查看成绩吗？`)) return;
   }
 
   STATE.quizSubmitted = true;
   clearInterval(STATE.quizTimerInterval);
 
-  // Score
+  // Score from graded questions
   let correct = 0;
   STATE.quizQuestions.forEach((q, qi) => {
-    const userAns = STATE.quizAnswers[qi] || [];
-    const isCorrect = checkAnswer(q, userAns);
-    if (isCorrect) correct++;
-    recordAnswer(q.id, userAns, isCorrect);
+    if (STATE.quizGraded[qi] === true) correct++;
+  });
+
+  renderQuizSetup();
+}
+
+// Legacy: kept for compatibility
+function submitQuiz() {
+  // Default to grade-all then final
+  quizGradeAll();
+  submitQuizFinal();
+}
   });
 
   renderQuizSetup();
@@ -926,8 +1028,7 @@ function renderQuizResults() {
   const total = STATE.quizQuestions.length;
   let correct = 0;
   STATE.quizQuestions.forEach((q, qi) => {
-    const userAns = STATE.quizAnswers[qi] || [];
-    if (checkAnswer(q, userAns)) correct++;
+    if (STATE.quizGraded[qi] === true) correct++;
   });
   const pct = total > 0 ? (correct / total * 100).toFixed(1) : 0;
   const scoreClass = pct >= 80 ? 'good' : (pct >= 60 ? 'ok' : 'bad');
@@ -946,8 +1047,9 @@ function renderQuizResults() {
   // Review incorrect
   const incorrect = [];
   STATE.quizQuestions.forEach((q, qi) => {
-    const userAns = STATE.quizAnswers[qi] || [];
-    if (!checkAnswer(q, userAns)) incorrect.push({q, qi, userAns});
+    if (STATE.quizGraded[qi] === false) {
+      incorrect.push({q, qi, userAns: STATE.quizAnswers[qi] || []});
+    }
   });
 
   if (incorrect.length > 0) {
@@ -973,6 +1075,7 @@ function renderQuizResults() {
 function resetQuiz() {
   STATE.quizQuestions = [];
   STATE.quizAnswers = {};
+  STATE.quizGraded = {};
   STATE.quizSubmitted = false;
   STATE.quizTimer = 0;
   clearInterval(STATE.quizTimerInterval);
