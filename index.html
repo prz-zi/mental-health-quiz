@@ -187,6 +187,27 @@ body {
 .option.show-correct:not(.correct):not(.wrong) { opacity: 0.6; }
 .option:disabled { cursor: default; pointer-events: none; }
 
+/* ===== Submit Button ===== */
+.submit-area { text-align: center; margin: 16px 0 8px 0; }
+.submit-btn {
+  width: 100%;
+  max-width: 300px;
+  padding: 14px 32px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 10px;
+  cursor: pointer;
+  font-size: 1.05rem;
+  font-weight: 600;
+  transition: all 0.2s;
+  box-shadow: 0 2px 8px rgba(79, 70, 229, 0.3);
+}
+.submit-btn:hover { background: var(--primary-light); transform: translateY(-1px); box-shadow: 0 4px 12px rgba(79, 70, 229, 0.4); }
+.submit-btn:disabled { opacity: 0.7; cursor: default; transform: none; box-shadow: none; }
+.submit-btn.correct { background: var(--success); box-shadow: 0 2px 8px rgba(16, 185, 129, 0.3); }
+.submit-btn.wrong { background: var(--danger); box-shadow: 0 2px 8px rgba(239, 68, 68, 0.3); }
+
 /* ===== Answer Reveal ===== */
 .answer-reveal {
   margin-top: 12px;
@@ -568,15 +589,17 @@ function renderPractice() {
     });
     html += '</div>';
 
+    // Submit button — right after options
+    html += '<div class="submit-area">';
+    html += `<button class="submit-btn primary" id="btn-submit" onclick="practiceSubmit()">📝 提交答案</button>`;
+    html += '</div>';
+
     // Answer reveal area
     html += '<div class="answer-reveal" id="answer-reveal"></div>';
 
     // Navigation
     html += '<div class="nav-buttons">';
     html += `<button class="nav-btn" onclick="practicePrev()" ${idx <= 0 ? 'disabled' : ''}>← 上一题</button>`;
-    html += '<div class="nav-center">';
-    html += `<button class="nav-btn primary" id="btn-submit" onclick="practiceSubmit()">📝 提交答案</button>`;
-    html += '</div>';
     html += `<button class="nav-btn" onclick="practiceNext()" ${idx >= qs.length - 1 ? 'disabled' : ''}>下一题 →</button>`;
     html += '</div>';
   }
@@ -677,10 +700,8 @@ function practiceSubmit() {
 
   // Update button
   btn.textContent = isCorrect ? '✅ 正确！' : '❌ 错误';
-  btn.className = isCorrect ? 'nav-btn correct-btn' : 'nav-btn wrong-btn';
+  btn.className = isCorrect ? 'submit-btn correct' : 'submit-btn wrong';
   btn.disabled = true;
-  btn.style.opacity = '0.85';
-  btn.style.cursor = 'default';
 
   // Record
   recordAnswer(q.id, selected, isCorrect);
