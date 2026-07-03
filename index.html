@@ -1,0 +1,1081 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>心理健康题库 - 答题刷题系统</title>
+<style>
+/* ===== Reset & Variables ===== */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+:root {
+  --primary: #4f46e5;
+  --primary-light: #818cf8;
+  --success: #10b981;
+  --danger: #ef4444;
+  --warning: #f59e0b;
+  --bg: #f1f5f9;
+  --card: #ffffff;
+  --text: #1e293b;
+  --text-secondary: #64748b;
+  --border: #e2e8f0;
+  --radius: 12px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-lg: 0 10px 15px -3px rgba(0,0,0,0.1), 0 4px 6px -4px rgba(0,0,0,0.1);
+}
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Noto Sans SC", sans-serif;
+  background: var(--bg);
+  color: var(--text);
+  min-height: 100vh;
+  line-height: 1.6;
+}
+
+/* ===== Layout ===== */
+.app { max-width: 900px; margin: 0 auto; padding: 16px; }
+
+/* ===== Header ===== */
+.header {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 20px 24px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  justify-content: space-between;
+  gap: 12px;
+}
+.header h1 { font-size: 1.4rem; font-weight: 700; color: var(--primary); }
+.header-stats {
+  display: flex;
+  gap: 16px;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+}
+.header-stats span { white-space: nowrap; }
+.header-stats strong { color: var(--text); }
+
+/* ===== Tabs ===== */
+.tabs {
+  display: flex;
+  gap: 4px;
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 4px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
+}
+.tab {
+  flex: 1;
+  padding: 10px 16px;
+  border: none;
+  background: transparent;
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.95rem;
+  font-weight: 500;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.tab:hover { color: var(--text); background: #f8fafc; }
+.tab.active { background: var(--primary); color: white; }
+
+/* ===== Card ===== */
+.card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 16px;
+  box-shadow: var(--shadow);
+}
+
+/* ===== Filters ===== */
+.filters {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 8px;
+  margin-bottom: 16px;
+  align-items: center;
+}
+.filter-btn {
+  padding: 6px 14px;
+  border: 1.5px solid var(--border);
+  background: var(--card);
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  color: var(--text-secondary);
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.filter-btn:hover { border-color: var(--primary-light); color: var(--primary); }
+.filter-btn.active { background: var(--primary); color: white; border-color: var(--primary); }
+.filter-separator { width: 1px; height: 24px; background: var(--border); margin: 0 4px; }
+.search-input {
+  flex: 1;
+  min-width: 160px;
+  padding: 8px 14px;
+  border: 1.5px solid var(--border);
+  border-radius: 20px;
+  font-size: 0.85rem;
+  outline: none;
+  transition: border-color 0.2s;
+}
+.search-input:focus { border-color: var(--primary); }
+.random-btn {
+  padding: 8px 18px;
+  background: var(--primary);
+  color: white;
+  border: none;
+  border-radius: 20px;
+  cursor: pointer;
+  font-size: 0.85rem;
+  font-weight: 500;
+  transition: background 0.2s;
+  white-space: nowrap;
+}
+.random-btn:hover { background: var(--primary-light); }
+
+/* ===== Question Card ===== */
+.question-card { transition: all 0.3s; }
+.question-meta {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 12px;
+  flex-wrap: wrap;
+  gap: 8px;
+}
+.question-badge {
+  display: inline-block;
+  padding: 3px 10px;
+  border-radius: 12px;
+  font-size: 0.75rem;
+  font-weight: 600;
+}
+.badge-single { background: #dbeafe; color: #1d4ed8; }
+.badge-multi { background: #fef3c7; color: #b45309; }
+.badge-tf { background: #d1fae5; color: #065f46; }
+.question-number { font-size: 0.85rem; color: var(--text-secondary); }
+.question-text {
+  font-size: 1.05rem;
+  font-weight: 500;
+  margin-bottom: 16px;
+  line-height: 1.7;
+}
+
+/* ===== Options ===== */
+.options { display: flex; flex-direction: column; gap: 8px; }
+.option {
+  padding: 12px 16px;
+  border: 2px solid var(--border);
+  border-radius: 8px;
+  cursor: pointer;
+  transition: all 0.2s;
+  font-size: 0.95rem;
+  position: relative;
+  user-select: none;
+}
+.option:hover { border-color: var(--primary-light); background: #f8fafc; }
+.option.selected { border-color: var(--primary); background: #eef2ff; }
+.option.correct { border-color: var(--success); background: #ecfdf5; }
+.option.wrong { border-color: var(--danger); background: #fef2f2; }
+.option.correct::after { content: " ✓"; color: var(--success); font-weight: bold; }
+.option.wrong::after { content: " ✗"; color: var(--danger); font-weight: bold; }
+.option.show-correct:not(.correct):not(.wrong) { opacity: 0.6; }
+.option:disabled { cursor: default; pointer-events: none; }
+
+/* ===== Answer Reveal ===== */
+.answer-reveal {
+  margin-top: 12px;
+  padding: 12px 16px;
+  background: #f0fdf4;
+  border: 1px solid #bbf7d0;
+  border-radius: 8px;
+  display: none;
+}
+.answer-reveal.show { display: block; }
+.answer-reveal.wrong-reveal { background: #fef2f2; border-color: #fecaca; }
+.answer-reveal .label { font-weight: 600; margin-right: 8px; }
+
+/* ===== Navigation ===== */
+.nav-buttons {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 20px;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+.nav-btn {
+  padding: 10px 24px;
+  border: 1.5px solid var(--border);
+  background: var(--card);
+  border-radius: 8px;
+  cursor: pointer;
+  font-size: 0.9rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.nav-btn:hover { background: #f8fafc; border-color: var(--primary-light); }
+.nav-btn.primary { background: var(--primary); color: white; border-color: var(--primary); }
+.nav-btn.primary:hover { background: var(--primary-light); }
+.nav-btn:disabled { opacity: 0.4; cursor: default; pointer-events: none; }
+.nav-center { display: flex; gap: 8px; align-items: center; }
+
+/* ===== Quiz Mode ===== */
+.quiz-setup {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 12px;
+  align-items: center;
+  margin-bottom: 16px;
+}
+.quiz-setup label { font-size: 0.9rem; font-weight: 500; }
+.quiz-setup select, .quiz-setup input {
+  padding: 8px 12px;
+  border: 1.5px solid var(--border);
+  border-radius: 8px;
+  font-size: 0.9rem;
+  outline: none;
+}
+.quiz-setup select:focus, .quiz-setup input:focus { border-color: var(--primary); }
+.quiz-timer {
+  font-size: 1.2rem;
+  font-weight: 700;
+  color: var(--primary);
+  text-align: center;
+  padding: 8px;
+}
+.quiz-timer.warning { color: var(--danger); animation: pulse 1s infinite; }
+@keyframes pulse { 0%,100% { opacity: 1; } 50% { opacity: 0.5; } }
+
+/* ===== Results ===== */
+.results { text-align: center; padding: 40px 20px; }
+.results .score {
+  font-size: 3rem;
+  font-weight: 800;
+  color: var(--primary);
+}
+.results .score.good { color: var(--success); }
+.results .score.ok { color: var(--warning); }
+.results .score.bad { color: var(--danger); }
+.results .detail {
+  display: flex;
+  justify-content: center;
+  gap: 24px;
+  margin: 20px 0;
+  flex-wrap: wrap;
+}
+.results .detail-item { text-align: center; }
+.results .detail-item .num { font-size: 1.5rem; font-weight: 700; }
+.results .detail-item .lbl { font-size: 0.8rem; color: var(--text-secondary); }
+
+/* ===== Progress ===== */
+.progress-bar {
+  width: 100%;
+  height: 6px;
+  background: var(--border);
+  border-radius: 3px;
+  margin-bottom: 16px;
+  overflow: hidden;
+}
+.progress-bar .fill {
+  height: 100%;
+  background: var(--primary);
+  border-radius: 3px;
+  transition: width 0.3s;
+}
+
+/* ===== Stats ===== */
+.stats-grid {
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+  gap: 12px;
+  margin-bottom: 16px;
+}
+.stat-card {
+  background: var(--card);
+  border-radius: var(--radius);
+  padding: 16px;
+  box-shadow: var(--shadow);
+  text-align: center;
+}
+.stat-card .stat-num { font-size: 1.8rem; font-weight: 700; }
+.stat-card .stat-lbl { font-size: 0.8rem; color: var(--text-secondary); margin-top: 4px; }
+.stat-card.single-stat .stat-num { color: #1d4ed8; }
+.stat-card.multi-stat .stat-num { color: #b45309; }
+.stat-card.tf-stat .stat-num { color: #065f46; }
+.stat-card.total-stat .stat-num { color: var(--primary); }
+
+/* ===== Question List ===== */
+.question-list-item {
+  padding: 12px 16px;
+  border-bottom: 1px solid var(--border);
+  cursor: pointer;
+  transition: background 0.2s;
+  display: flex;
+  align-items: center;
+  gap: 12px;
+}
+.question-list-item:hover { background: #f8fafc; }
+.question-list-item .idx { font-weight: 600; color: var(--text-secondary); min-width: 30px; }
+.question-list-item .preview { flex: 1; overflow: hidden; text-overflow: ellipsis; white-space: nowrap; }
+.question-list-empty { text-align: center; padding: 40px; color: var(--text-secondary); }
+
+/* ===== Utility ===== */
+.hidden { display: none !important; }
+.text-center { text-align: center; }
+.mt-12 { margin-top: 12px; }
+.mt-16 { margin-top: 16px; }
+.mt-20 { margin-top: 20px; }
+
+/* ===== Mobile ===== */
+@media (max-width: 640px) {
+  .app { padding: 8px; }
+  .header { padding: 12px 16px; }
+  .header h1 { font-size: 1.1rem; }
+  .card { padding: 16px; }
+  .tab { padding: 8px 10px; font-size: 0.8rem; }
+  .filters { gap: 4px; }
+  .filter-btn { padding: 5px 10px; font-size: 0.78rem; }
+  .option { padding: 10px 12px; font-size: 0.9rem; }
+  .question-text { font-size: 0.95rem; }
+  .nav-btn { padding: 8px 16px; font-size: 0.85rem; }
+  .results .score { font-size: 2.2rem; }
+}
+</style>
+</head>
+<body>
+<div class="app" id="app">
+  <!-- Header -->
+  <div class="header">
+    <h1>🧠 心理健康题库</h1>
+    <div class="header-stats">
+      <span>题库: <strong id="total-count">940</strong> 题</span>
+      <span>已做: <strong id="done-count">0</strong> 题</span>
+    </div>
+  </div>
+
+  <!-- Tabs -->
+  <div class="tabs">
+    <button class="tab active" data-tab="practice" onclick="switchTab('practice')">📝 刷题模式</button>
+    <button class="tab" data-tab="quiz" onclick="switchTab('quiz')">🏆 答题模式</button>
+    <button class="tab" data-tab="browse" onclick="switchTab('browse')">📋 题库浏览</button>
+    <button class="tab" data-tab="stats" onclick="switchTab('stats')">📊 学习统计</button>
+  </div>
+
+  <!-- Tab content containers -->
+  <div id="tab-practice"></div>
+  <div id="tab-quiz" class="hidden"></div>
+  <div id="tab-browse" class="hidden"></div>
+  <div id="tab-stats" class="hidden"></div>
+</div>
+
+<script>
+const QUESTION_BANK = [{"id": 1, "type": "single", "question": "（）是一个人对事物、世界好奇而进行探索、认知的需要，可促使一个人产生探索、认知的行为。", "options": ["A. 动机", "B. 兴趣", "C. 需要", "D. 能力"], "answer": ["B"], "set": 0}, {"id": 2, "type": "single", "question": "（）左右，儿童开始出现羞耻感、占有心和独立意愿，自我意识有了新的发展。", "options": ["A. 1岁", "B. 1.5岁", "C. 2岁", "D. 3岁"], "answer": ["D"], "set": 0}, {"id": 3, "type": "single", "question": "有些大学生在择业时主要考虑的因素是“有利于个人的发展”、“获得理想的个人收入”等，而很少考虑职业的社会价值、个人利益和国家利益的结合，这是（）。", "options": ["A. 单次择业心理", "B. 过于功利心理", "C. 盲目从众心理", "D. 盲目攀比心理"], "answer": ["B"], "set": 0}, {"id": 4, "type": "single", "question": "根据一项关于“我的长处与我的短处”的调查，大约有（）的大学生填写我的短处时把“懒惰”写在了第一位。", "options": ["A. 0.36", "B. 0.46", "C. 0.56", "D. 0.66"], "answer": ["B"], "set": 0}, {"id": 5, "type": "single", "question": "大学生正处于职业发展的（）。", "options": ["A. 建立阶段", "B. 维持阶段", "C. 探索阶段", "D. 成长阶段"], "answer": ["C"], "set": 0}, {"id": 6, "type": "single", "question": "（）提出了情绪ABCDE理论。", "options": ["A. 班杜拉", "B. 斯金纳", "C. 桑代克", "D. 艾利斯"], "answer": ["D"], "set": 0}, {"id": 7, "type": "single", "question": "（），婴儿开始产生自我意识的萌芽，即能意识到自己的身体和外部世界的边界，听到别人叫自己的名字，会知道是在叫自己。", "options": ["A. 6个月后", "B. 7个月后", "C. 8个月后", "D. 1岁后"], "answer": ["C"], "set": 0}, {"id": 8, "type": "single", "question": "儿童行为问题、婚姻恋爱问题、环境适应问题及老人问题等属于（）。", "options": ["A. 与个人发展有关的咨询", "B. 与个人心理发展有关的咨询", "C. 与个人教育有关的咨询", "D. 与个人职业活动有关的咨询"], "answer": ["A"], "set": 0}, {"id": 9, "type": "single", "question": "（）提出了著名的人格发展八阶段理论。", "options": ["A. 霍妮", "B. 弗洛伊德", "C. 荣格", "D. 埃里克森"], "answer": ["D"], "set": 0}, {"id": 10, "type": "single", "question": "心理学家（）认为，人的整个一生是一系列的适应阶段，而每一个阶段都会对个人的长期调节产生影响。", "options": ["A. 舒伯", "B. 达尔文", "C. 珍妮", "D. 皮亚杰"], "answer": ["C"], "set": 0}, {"id": 11, "type": "multi", "question": "乔韩窗口理论是关于人自我认识的窗口理论，包括了（）窗口。", "options": ["A. 公开我", "B. 盲目我", "C. 隐藏我", "D. 潜能我"], "answer": ["A", "B", "C", "D"], "set": 0}, {"id": 12, "type": "multi", "question": "大学生塑造健全自我意识包括（）。", "options": ["A. 客观认识自我", "B. 积极悦纳自我", "C. 有效调控自我", "D. 勇敢超越自我"], "answer": ["A", "B", "C", "D"], "set": 0}, {"id": 13, "type": "multi", "question": "健全自我意识的标准包括（）。", "options": ["A. 有自知之明，知道自己的优势，也知道自己的劣势，能正确评价自我和自我发展", "B. 自我认识、自我体验和自我调控协调一致", "C. 积极的、自我肯定的、独立的并与外界保持一致", "D. 理想自我和现实自我统一，有积极的目标意识和内省意识，积极进取，永无止境"], "answer": ["A", "B", "C", "D"], "set": 0}, {"id": 14, "type": "multi", "question": "自我意识主要具有（）等特点。", "options": ["A. 个体性", "B. 社会性", "C. 能动性", "D. 丰富性"], "answer": ["A", "B", "C"], "set": 0}, {"id": 15, "type": "multi", "question": "团体作为一个社会单元，它的社会心理特点主要有（）方面。", "options": ["A. 消除成员顾虑", "B. 促进咨询师和成员关系和谐", "C. 满足成员的需要", "D. 利用团体凝聚力和领导的特点，吸引团体成员进行互相帮助"], "answer": ["C", "D"], "set": 0}, {"id": 16, "type": "truefalse", "question": "0-3岁阶段是生理自我时期，也叫自我中心时期。", "options": ["对", "错"], "answer": ["对"], "set": 0}, {"id": 17, "type": "truefalse", "question": "自我意识是天生就有的，且随着年龄增长日渐完善。", "options": ["对", "错"], "answer": ["错"], "set": 0}, {"id": 18, "type": "truefalse", "question": "世界卫生组织提出，每个人的健康与寿命，15%取决于自身的生活方式，60%取决于遗传基因，10%取决于社会因素，8%取决于医疗条件，7%取决于气候。", "options": ["对", "错"], "answer": ["错"], "set": 0}, {"id": 19, "type": "truefalse", "question": "大学生自我调控能力有了明显提高，因此不容易受到外界的影响而无法控制自我。", "options": ["对", "错"], "answer": ["错"], "set": 0}, {"id": 20, "type": "truefalse", "question": "在心理咨询中，咨询者和来访者的关系是不平等的。", "options": ["对", "错"], "answer": ["错"], "set": 0}, {"id": 21, "type": "single", "question": "（）是男女之间基于一定的客观物质基础和共同的生活理想，以互爱为前提，以互相倾慕为基础，并渴望对方成为自己终身伴侣的最强烈、稳定、专一的感情。", "options": ["A. 爱情", "B. 激情", "C. 喜欢", "D. 欣赏"], "answer": ["A"], "set": 0}, {"id": 22, "type": "single", "question": "（）强调在整体环境中研究学习，同时还强调知觉经验组织的作用。", "options": ["A. 知觉塔", "B. 汉诺塔", "C. 河内塔", "D. 格式塔"], "answer": ["D"], "set": 0}, {"id": 23, "type": "single", "question": "通过学习活动可以发展智力，开发潜能。这是学习对心理健康的（）。", "options": ["A. 能动影响", "B. 主动影响", "C. 积极影响", "D. 消极影响"], "answer": ["C"], "set": 0}, {"id": 24, "type": "single", "question": "性心理健康表现在（）方面，有正常的性态度与性欲望，没有性心理障碍与性行为变态。", "options": ["A. 性意志", "B. 性情感", "C. 性心理", "D. 性认知"], "answer": ["D"], "set": 0}, {"id": 25, "type": "single", "question": "（）型的学生晚上的学习效果要比清晨的更好。", "options": ["A. “鸭子”", "B. “猫头鹰”", "C. “百灵鸟”", "D. “麻雀”"], "answer": ["B"], "set": 0}, {"id": 26, "type": "single", "question": "首因效应是美国心理学家（）首先提出的。", "options": ["A. 霍妮", "B. 珍妮", "C. 泰尔其尔", "D. 洛钦斯"], "answer": ["D"], "set": 0}, {"id": 27, "type": "single", "question": "如果大学生不能正确认识自己的身体和第二性征，甚至将其看作自己的缺陷，就会产生自卑心理，以致影响人际交往、学习和生活。这是（）带来的心理困扰。", "options": ["A. 性压抑", "B. 性意识", "C. 性行为", "D. 性体像"], "answer": ["D"], "set": 0}, {"id": 28, "type": "single", "question": "大学生在人际交往时应把交往对象看待为一个独特的人，在实际交往中去发现、认识和理解对方，不受先前固定化认知的影响。这是在消除（）对人际交往的负面影响。", "options": ["A. 首因效应", "B. 晕轮效应", "C. 角色固着", "D. 刻板效应"], "answer": ["D"], "set": 0}, {"id": 29, "type": "single", "question": "儿童将兴趣转向外部，发展各种为应付环境所需要的知识和技能。这是性心理发展五阶段中的（）。", "options": ["A. 发展期", "B. 探索期", "C. 潜伏期", "D. 生殖期"], "answer": ["C"], "set": 0}, {"id": 30, "type": "single", "question": "大学生的学习疲劳大多是由（）引起的。", "options": ["A. 中度疲劳", "B. 重度疲劳", "C. 心理疲劳", "D. 生理疲劳"], "answer": ["C"], "set": 0}, {"id": 31, "type": "multi", "question": "大学同学之间常见的关系包括（）。", "options": ["A. 班级内的同学关系", "B. 宿舍关系", "C. 伴侣关系", "D. 老乡、社团关系"], "answer": ["A", "B", "D"], "set": 0}, {"id": 32, "type": "multi", "question": "学生学习的特点是（）。", "options": ["A. 学习的计划性、组织性、目的性十分明确", "B. 学习内容以学习间接知识、经验为主", "C. 学习过程是积极主动的，包含了复杂的心理因素与活动", "D. 学习的目的不但要掌握知识和技能，还要发展思维能力，培养品德品质，形成一定的价值观、世界观，获得全面发展"], "answer": ["A", "B", "C", "D"], "set": 0}, {"id": 33, "type": "multi", "question": "非智力因素在学校过程中的作用包括（）等。", "options": ["A. 驱动作用", "B. 定向作用", "C. 维持作用", "D. 强化作用"], "answer": ["A", "B", "C", "D"], "set": 0}, {"id": 34, "type": "multi", "question": "大学生呈现出了多样的恋爱观，包括（）。", "options": ["A. 享乐型", "B. 功利型", "C. 伴侣型", "D. 从众型"], "answer": ["A", "B", "C", "D"], "set": 0}, {"id": 35, "type": "multi", "question": "我国学者认为性意识的阶段包括（）。", "options": ["A. 性意识潜伏——不避嫌接触期", "B. 性意识朦胧——疏远异性期", "C. 性意识觉醒——异性向往期", "D. 性意识成熟阶段——两性恋爱期"], "answer": ["B", "C", "D"], "set": 0}, {"id": 36, "type": "truefalse", "question": "自己喜欢说谎，就认为别人也总是在骗自己，这是投射效应。", "options": ["对", "错"], "answer": ["对"], "set": 0}, {"id": 37, "type": "truefalse", "question": "通过学习活动引起的变化是长久的。", "options": ["对", "错"], "answer": ["对"], "set": 0}, {"id": 38, "type": "truefalse", "question": "“远亲不如近邻”说的是空间距离对于人际关系的影响。", "options": ["对", "错"], "answer": ["对"], "set": 0}, {"id": 39, "type": "truefalse", "question": "漂亮的异性讨人喜欢，容易给人好感并产生爱的萌动，这是爱的自主性在起作用。", "options": ["对", "错"], "answer": ["错"], "set": 0}, {"id": 40, "type": "truefalse", "question": "遗忘的进程是不规律的:识记结束后，遗忘一开始是缓慢的，随着时间的进展，遗忘逐渐加快。", "options": ["对", "错"], "answer": ["对"], "set": 0}, {"id": 41, "type": "single", "question": "自己不为人知的往事、痛苦、隐疾、秘密等信息，这是乔韩视窗中的（）窗口。", "options": ["A. 隐藏我", "B. 潜能我", "C. 公开我", "D. 盲目我"], "answer": ["A"], "set": 0}, {"id": 42, "type": "single", "question": "（）的主要观点是认为个人人格的合理构造是心理健康的基础。", "options": ["A. 霍妮", "B. 弗洛伊德", "C. 荣格", "D. 华生"], "answer": ["B"], "set": 0}, {"id": 43, "type": "single", "question": "当个体发现“理想我”和“现实我”之间往往存在较大的差距，产生了内心冲突，引发不安甚至痛苦的体验，这是自我意识发展的（）阶段。", "options": ["A. 自我分化", "B. 自我矛盾", "C. 自我痛苦", "D. 自我折磨"], "answer": ["B"], "set": 0}, {"id": 44, "type": "single", "question": "在人格发展八阶段理论的青春期中，个体没有解决危机会形成（）。", "options": ["A. 悔恨过去、悲观失望", "B. 缺乏建立亲密关系的能力、孤独寂寞", "C. 没有生育感，人格贫乏停滞，自私自利", "D. 角色混乱，缺乏目标，行动不明"], "answer": ["D"], "set": 0}, {"id": 45, "type": "single", "question": "“他们能接受一切经验;他们可时刻保持生活充实;他们相信自己的机体;他们有自由感;他们具有高创造性”，这是（）的观点。", "options": ["A. “功能充分发挥者”的心理健康模式", "B. “自我实现的人”的心理健康模式", "C. “追求完善的人”的心理健康模式", "D. “良好适应者”的心理健康模式"], "answer": ["A"], "set": 0}, {"id": 46, "type": "single", "question": "第三学年的生涯规划目标是（）。", "options": ["A. 转换职业角色", "B. 发现自我特点", "C. 扩展职业视野", "D. 确定兴趣职业"], "answer": ["D"], "set": 0}, {"id": 47, "type": "single", "question": "树立科学的人生观、价值观，将个人的职业理想和社会需求结合起来，培养奉献意识;了解不同职业所要求的职业行为规范，树立良好的职业道德意识，这是就业意识准备中的（）。", "options": ["A. 能力准备", "B. 信息准备", "C. 思想准备", "D. 知识准备"], "answer": ["C"], "set": 0}, {"id": 48, "type": "single", "question": "1918年，（）成立了全国心理卫生协会。", "options": ["A. 美国", "B. 加拿大", "C. 法国", "D. 比利时"], "answer": ["B"], "set": 0}, {"id": 49, "type": "single", "question": "（）是指调整原有认知结构或行为模式以适应环境变化的过程。", "options": ["A. 接纳", "B. 调整", "C. 同化", "D. 顺应"], "answer": ["D"], "set": 0}, {"id": 50, "type": "single", "question": "“我是我爸爸的女儿”，这个自我认知属于（）。", "options": ["A. 生理自我", "B. 社会自我", "C. 现实自我", "D. 心理自我"], "answer": ["B"], "set": 0}, {"id": 51, "type": "multi", "question": "自我意识从内容上划分，可以分为（）。", "options": ["A. 生理自我", "B. 生物自我", "C. 心理自我", "D. 社会自我"], "answer": ["A", "C", "D"], "set": 0}, {"id": 52, "type": "multi", "question": "有效调控自我的方面（）。", "options": ["A. 合理确立“理想我”", "B. 努力提高“现实我”", "C. 勇敢超越自我", "D. 不断增强意志力"], "answer": ["A", "B", "D"], "set": 0}, {"id": 53, "type": "multi", "question": "自我意识的发展模式是（）的过程。", "options": ["A. 自我分析", "B. 自我分化", "C. 自我矛盾", "D. 自我统一"], "answer": ["B", "C", "D"], "set": 0}, {"id": 54, "type": "multi", "question": "心理动力决定个体对现实世界的认知态度和对活动对象的选择与方向，它主要包括（）等。", "options": ["A. 动机", "B. 需要", "C. 兴趣", "D. 世界观"], "answer": ["A", "B", "C", "D"], "set": 0}, {"id": 55, "type": "multi", "question": "大学生学习适应问题包括（）。", "options": ["A. 学习目标不明确", "B. 教学方式不适应", "C. 学习内容不适应", "D. 自学方式不适应"], "answer": ["A", "B", "C", "D"], "set": 0}, {"id": 56, "type": "truefalse", "question": "健康有序的生活习惯会使大学生生活规律、精力充沛、身体健康，从而高效率地完成繁重的学习任务。", "options": ["对", "错"], "answer": ["对"], "set": 0}, {"id": 57, "type": "truefalse", "question": "为了使心理咨询的效果更好，心理咨询师可以让来访者多依赖自己，以便提供更多的帮助。", "options": ["对", "错"], "answer": ["对"], "set": 0}, {"id": 58, "type": "truefalse", "question": "心理健康研究的对象就是人的心理活动的形成、发展、变化的规律，以及如何科学地维护和增进心理健康。", "options": ["对", "错"], "answer": ["对"], "set": 0}, {"id": 59, "type": "truefalse", "question": "当个体处于生涯发展理论探索阶段，他们的发展任务是发展自我形象，发展对工作世界的正确态度，并了解工作的意义。", "options": ["对", "错"], "answer": ["错"], "set": 0}, {"id": 60, "type": "single", "question": "那些自己与他人均不确定的尚待开发的能力或特性，属于乔韩视窗中的（）窗口。", "options": ["A. 隐藏我", "B. 潜能我", "C. 公开我", "D. 盲目我"], "answer": ["B"], "set": 1}, {"id": 61, "type": "single", "question": "1930年5月在（）召开了第一届国际心理卫生大会。", "options": ["A. 明尼苏达", "B. 华盛顿", "C. 纽约", "D. 伦敦"], "answer": ["B"], "set": 1}, {"id": 62, "type": "single", "question": "大学生正视现实生活的严峻性和挑战性，形成应有的危机意识、风险意识，这是树立（）。", "options": ["A. 就业风险意识", "B. 就业法律意识", "C. 就业准备意识", "D. 就业竞争意识"], "answer": ["A"], "set": 1}, {"id": 63, "type": "single", "question": "“建立亲密关系的能力”这个评价要素属于（）基本维度。", "options": ["A. 角色与功能协调", "B. 基本心理能力", "C. 内外协调适应", "D. 情绪稳定"], "answer": ["B"], "set": 1}, {"id": 64, "type": "single", "question": "“自我实现的人”的心理健康模式是（）提出的。", "options": ["A. 英格里斯", "B. 罗杰斯", "C. 奥尔波特", "D. 马斯洛"], "answer": ["D"], "set": 1}, {"id": 65, "type": "single", "question": "金斯伯格提出的职业生涯发展的现实期处于（）。", "options": ["A. 14岁以后的青少年年龄段", "B. 15岁以后的青少年年龄段", "C. 16岁以后的青少年年龄段", "D. 17岁以后的青年年龄段"], "answer": ["D"], "set": 1}, {"id": 66, "type": "single", "question": "有的同学想在大学生活中锻炼自己的活动能力，但是没有充裕的时间去参加社团活动，这是（）。", "options": ["A. 趋避冲突", "B. 心理冲突", "C. 双趋冲突", "D. 双避冲突"], "answer": ["A"], "set": 1}, {"id": 67, "type": "single", "question": "在人格发展八阶段理论的成熟期中，个体没有解决危机会形成（）。", "options": ["A. 角色混乱，缺乏目标，行动不明", "B. 缺乏建立亲密关系的能力、孤独寂寞", "C. 没有生育感，人格贫乏停滞，自私自利", "D. 悔恨过去、悲观失望"], "answer": ["D"], "set": 1}, {"id": 68, "type": "single", "question": "研究者钟慧认为:大学生（）的能力越强，则成就动机就越强，自尊水平就越高，健康状况会更好，主观价值感和幸福感都会更强。", "options": ["A. 时间管理", "B. 调节情绪", "C. 压力管理", "D. 想象思维"], "answer": ["A"], "set": 1}, {"id": 69, "type": "multi", "question": "大学生自我意识发展的特点包括（）。", "options": ["A. 自我认识的自觉性逐步提高，但又现矛盾性", "B. 自我认识的完全成熟性", "C. 自我体验的深刻性不断增强，但又呈两极性", "D. 自我调控的能力明显提高，但又具动摇性"], "answer": ["A", "C", "D"], "set": 1}, {"id": 70, "type": "multi", "question": "从自我观念上，自我意识可以分为（）。", "options": ["A. 反射我", "B. 现实我", "C. 投射我", "D. 理想我"], "answer": ["B", "C", "D"], "set": 1}, {"id": 71, "type": "multi", "question": "大学生就业准备意识包括（）等。", "options": ["A. 思想准备", "B. 知识准备", "C. 能力准备", "D. 信息准备"], "answer": ["A", "B", "C", "D"], "set": 1}, {"id": 72, "type": "multi", "question": "1908年5月6日，在社会各界的赞助和支持下，由比尔斯发起，在他的家乡成立了世界上第一个心理卫生组织。该协会提出的工作目标包括（）。", "options": ["A. 保持心理健康和防治心理疾病", "B. 提高精神病患者的待遇", "C. 普及关于心理疾病的正确知识", "D. 与心理卫生有关的机构合作。"], "answer": ["A", "B", "C", "D"], "set": 1}, {"id": 73, "type": "multi", "question": "大学生悦纳新的环境，包括（）等方面。", "options": ["A. 悦纳社团文化", "B. 悦纳校园环境", "C. 悦纳校园文化", "D. 悦纳集体生活"], "answer": ["B", "C", "D"], "set": 1}, {"id": 74, "type": "truefalse", "question": "大学生的职业价值观应强调自我价值，无需考虑社会需求、国家利益。", "options": ["对", "错"], "answer": ["错"], "set": 1}, {"id": 75, "type": "truefalse", "question": "“现实我”是对自己目前的实际状况的看法，是个体对自己的现实观感。", "options": ["对", "错"], "answer": ["对"], "set": 1}, {"id": 76, "type": "truefalse", "question": "人际关系的丧失对心理健康不会产生太大的影响。", "options": ["对", "错"], "answer": ["错"], "set": 1}, {"id": 77, "type": "truefalse", "question": "处于生涯发展理论中建立期的个体，致力于工作上的稳固。", "options": ["对", "错"], "answer": ["对"], "set": 1}, {"id": 78, "type": "truefalse", "question": "换位思考是人对人的一种心理体验过程。它客观上要求我们将自己的内心世界与对方联系起来，站在对方的立场上体验和思考问题。", "options": ["对", "错"], "answer": ["对"], "set": 1}, {"id": 79, "type": "single", "question": "从（）分析，人际交往是指人与人之间通过动态的相互作用形成的相对稳定的情感联系。", "options": ["A. 动态角度", "B. 静态角度", "C. 主动角度", "D. 被动角度"], "answer": ["B"], "set": 2}, {"id": 80, "type": "single", "question": "”情人眼里出西施”，这体现的是爱情的社会属性中（）内涵。", "options": ["A. 爱情的无知", "B. 爱情是有目的的交往", "C. 爱情与美的领悟", "D. 爱情的盲目"], "answer": ["C"], "set": 2}, {"id": 81, "type": "single", "question": "没有激情的爱称为（），可以依靠亲密和承诺走完漫漫人生征程。", "options": ["A. 伴侣的爱", "B. 浪漫的爱", "C. 空洞的爱", "D. 愚昧的爱"], "answer": ["A"], "set": 2}, {"id": 82, "type": "single", "question": "初次看到某人谈吐优雅、礼貌待人，就会留下一个好印象。这是人际交往中的（）。", "options": ["A. 投射效应", "B. 角色固着", "C. 首因效应", "D. 近因效应"], "answer": ["C"], "set": 2}, {"id": 83, "type": "single", "question": "（）一旦形成，不但较难改变，而且还会沿袭传播。", "options": ["A. 首因效应", "B. 光环效应", "C. 刻板印象", "D. 角色固着"], "answer": ["C"], "set": 2}, {"id": 84, "type": "single", "question": "性心理发展五阶段是（）提出的。", "options": ["A. 马斯洛", "B. 霍妮", "C. 弗洛伊德", "D. 荣格"], "answer": ["C"], "set": 2}, {"id": 85, "type": "single", "question": "著名性学家（）认为:爱情的动力和内在本质是男子与女子的性欲。", "options": ["A. 马斯特斯", "B. 约翰逊", "C. 霭理斯", "D. 金赛"], "answer": ["C"], "set": 2}, {"id": 86, "type": "single", "question": "具有明确的识记目的，并采取一定的方法进行识记，有时还需要一定的意志去努力。这是（）。", "options": ["A. 无意识记", "B. 意志识记", "C. 有意识记", "D. 目的识记"], "answer": ["C"], "set": 2}, {"id": 87, "type": "single", "question": "大学生从在教师指导下完成作业，到独立完成毕业论文，这是大学生学习的（）特点。", "options": ["A. 自主选择性", "B. 研究探索与创新性", "C. 专业性", "D. 形式多样性"], "answer": ["B"], "set": 2}, {"id": 88, "type": "single", "question": "性心理健康表现在（）方面，对性需求能恰当满足与控制、能摆正性在人生目标中的位置。", "options": ["A. 性情感", "B. 性意志", "C. 性心理", "D. 性认知"], "answer": ["B"], "set": 2}, {"id": 89, "type": "multi", "question": "大学生爱的能力培养包括（）等。", "options": ["A. 表达爱的能力", "B. 接受爱的能", "C. 拒绝爱的能力", "D. 恋爱挫折的承受能力"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 90, "type": "multi", "question": "科学学习方法遵循的一般原则为（）。", "options": ["A. 及时复习", "B. 系统学习", "C. 及时总结", "D. 循序渐进"], "answer": ["B", "C", "D"], "set": 2}, {"id": 91, "type": "multi", "question": "从广义上讲，学习是人和动物在生活过程中通过实践训练而获得的相对持久的适应性的心理变化。这个定义体现了学习的（）特点。", "options": ["A. 学习是动物和人都有的心理现象。", "B. 学习不是本能活动，而是后天习得的。", "C. 任何水平的学习都将引起适应的变化，不仅是外显行为的变化，也有内部过程的变化，这种变化不是短暂的而是长久的。", "D. 不能把个体的一切变化都归为学习，只有通过学习活动产生的变化才是学习。"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 92, "type": "multi", "question": "性心理健康的标准包括（）等。", "options": ["A. 能正确认识和接纳自己的性别", "B. 能有正常的性欲望", "C. 与同龄人的性心理发展水平相当", "D. 具有较强的性适应能力"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 93, "type": "truefalse", "question": "心理疲劳是出现肌肉痉挛、动作不和谐、头晕乏力，甚至出现失眠等症状。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 94, "type": "truefalse", "question": "动物 和人类的性行为不仅有导致生育目的的性交，也有出于娱情、结偶、示爱、探索、解闷等需要的非生育目的的方面。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 95, "type": "truefalse", "question": "对等性是爱情的最大特点。 [单选题] *排他性", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 96, "type": "single", "question": "大学生希望广交朋友，并能有几个知心朋友，大家彼此倾吐自己的心事，共同交流和探讨人生问题;但是，他们又强烈地封闭自己，不愿敞开心扉;他们想成为有成就的人，但现实中又不肯勤奋拼搏。这些是大学生（）之间的矛盾。", "options": ["A. “主观我”与“客观我”", "B. “理想我”与“现实我”", "C. “独立我”与“自立我”", "D. “矛盾我”与“统一我”"], "answer": ["B"], "set": 2}, {"id": 97, "type": "multi", "question": "当我们眼前出现一个苹果，人脑对这个苹果的颜色、气味等个别特征的反映就是（）。", "options": ["A. 感觉", "B. 知觉", "C. 思维", "D. 记忆"], "answer": ["A", "A"], "set": 2}, {"id": 98, "type": "single", "question": "人本主义主张心理学的研究应该（）。", "options": ["A. 以动物为中心", "B. 以人的行为为中心", "C. 以人为中心", "D. 以不正常人为中心"], "answer": ["C"], "set": 2}, {"id": 99, "type": "single", "question": "新精神分析学派除了强调个人潜意识影响之外，还强调了（）的影响作用。", "options": ["A. 家庭", "B. 意识", "C. 教育", "D. 社会文化"], "answer": ["D"], "set": 2}, {"id": 100, "type": "single", "question": "我国著名教育家吴南轩先生首先在（）心理系开设了心理卫生选修课。", "options": ["A. 中央大学", "B. 南京大学", "C. 北京大学", "D. 清华大学"], "answer": ["A"], "set": 2}, {"id": 101, "type": "single", "question": "人际交往的黄金法则是（）。", "options": ["A. 别人对我怎么样，我就对别人怎样", "B. 你希望自己怎么对别人，就让别人怎么对你。", "C. 你希望别人怎么对你，那你就怎么对待别人", "D. 我对别人怎样，别人就要对我怎样。"], "answer": ["C"], "set": 2}, {"id": 102, "type": "single", "question": "大学生对自己的认识不太稳定，弄不清自己到底是怎么样的人;有时能客观、全面地评价自己，有时又比较主观片面地看待自己;有时对自己很满意，认为自己很能干，有时又对自己很不满意，认为自己很无能;有时认为自己是一个坚强的人，有时又认为自己是个懦夫。这些是大学生（）之间的矛盾。", "options": ["A. “主观我”与“客观我”", "B. “理想我”与“现实我”", "C. “独立我”与“自立我”", "D. “矛盾我”与“统一我”"], "answer": ["A"], "set": 2}, {"id": 103, "type": "single", "question": "一般认为，（）由于既为发展提供了基础，又提供了动力，所以最有利于发展。", "options": ["A. 中等程度的适应", "B. 主动适应", "C. 被动适应", "D. 积极适应"], "answer": ["A"], "set": 2}, {"id": 104, "type": "single", "question": "生涯发展理论的成长阶段是（）。", "options": ["A. 出生到14岁", "B. 15-24岁", "C. 25-44岁", "D. 10-14岁"], "answer": ["A"], "set": 2}, {"id": 105, "type": "multi", "question": "青春期至成年这段时期，个体的自我意识发展呈现出如下特点:（）。", "options": ["A. 个体能从自己的观点出发来认识事物，而不是人云亦云，思想和行为带有浓厚的个人主观色彩", "B. 个体能根据自己所认识的人的特点，如气质性格和身体特征等，强调相应事物的重要性，从而形成自己特有的价值体系", "C. 个体能追求理想目标，出现了“理想我”", "D. 个体的抽象思维能力大大提高，使自我意识能超越具体的情境，进入精神领域，从而表现出对哲学、伦理学和文学等探讨人生问题的学科的兴趣。"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 106, "type": "multi", "question": "客观认识自我的途径包括（）等。", "options": ["A. 通过自我反省认识自己", "B. 分析他人对自己的评价", "C. 通过与他人比较认识自己", "D. 在人际交往的互动中了解自己"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 107, "type": "multi", "question": "第一学年的生涯规划的任务是（）。", "options": ["A. 在基础课程学习、学生工作、体育运动、课余活动等方面来发展你的兴趣和技能", "B. 了解学校就业指导中心等类似机构所能提供的关于职业的信息，对不同的职业和职位有一定的认识", "C. 跟父母、朋友、老师和已经工作的前辈讨论自己对于职业的兴趣", "D. 参加一些跟求职有关的小组讨论、自我测试等，加深对自己的了解，明确自己需要加强的竞争力;同时，努力学习，尽可能得到高的分数"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 108, "type": "multi", "question": "正确的择业观念有（）等。", "options": ["A. 高尚择业观念", "B. 主动择业观念", "C. 多次择业观念", "D. 平等择业观念"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 109, "type": "truefalse", "question": "习惯站在自我的立场上看待和处理问题，忽视他人和集体，不能正确处理个人利益和他人利益、集体利益的关系等，这些是自负的表现。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 110, "type": "truefalse", "question": "大学生应该学习与自己就业相关的法律法规，了解自己在就业中的权利和义务。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 111, "type": "truefalse", "question": "积极悦纳自我是塑造健全自我意识的关键和核心。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 112, "type": "single", "question": "“我的智商很高”，这个自我认知属于（）。", "options": ["A. 生理自我", "B. 社会自我", "C. 现实自我", "D. 心理自我"], "answer": ["D"], "set": 2}, {"id": 113, "type": "single", "question": "心理学家（）指出:智慧的本质就是适应。", "options": ["A. 罗杰斯", "B. 皮亚杰", "C. 桑代克", "D. 马斯洛"], "answer": ["B"], "set": 2}, {"id": 114, "type": "single", "question": "那些自己与他人均不确定的能力或特性，属于乔韩视窗中的（）窗口。", "options": ["A. 隐藏我", "B. 潜能我", "C. 公开我", "D. 盲目我"], "answer": ["B"], "set": 2}, {"id": 115, "type": "multi", "question": "当我们眼前出现一个苹果，人脑对这个苹果的颜色、气味等个别特征的反映就就是（）。", "options": ["A. 感觉", "B. 知觉", "C. 思维", "D. 记忆"], "answer": ["A", "A"], "set": 2}, {"id": 116, "type": "single", "question": "个体产生心理疾患的根本原因是（）。", "options": ["A. 家庭环境", "B. 个性", "C. 遗传基因", "D. 社会环境"], "answer": ["B"], "set": 2}, {"id": 117, "type": "single", "question": "在人格发展八阶段理论的婴儿期中，个体会面临的危机是（）。", "options": ["A. 基本信任对基本不信任", "B. 自主对羞怯、疑虑", "C. 主动对内疚", "D. 勤奋对自卑"], "answer": ["A"], "set": 2}, {"id": 118, "type": "single", "question": "在人格发展八阶段理论的学龄期中，个体没有解决危机会形成（）。", "options": ["A. 愤怒、面对新环境会焦虑", "B. 自我怀疑，行为畏首畏尾", "C. 难以建立自信，无自我价值", "D. 缺乏基本技能、充满失败感"], "answer": ["D"], "set": 2}, {"id": 119, "type": "multi", "question": "不良的择业心理有（）等。", "options": ["A. 自卑心理", "B. 焦虑心理", "C. 犹豫心理", "D. 冲动心理"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 120, "type": "multi", "question": "人们对环境的适应，从适应的方向上看大体上有（）类型。", "options": ["A. 消极的适应", "B. 主动的适应", "C. 被动的适应", "D. 积极的适应"], "answer": ["A", "D"], "set": 2}, {"id": 121, "type": "multi", "question": "《心理学大辞典》认为:有机体是在不断运动变化中与环境取得平衡的，它可以概括为（）作用。", "options": ["A. 调适", "B. 同化", "C. 发展", "D. 顺应"], "answer": ["B", "D"], "set": 2}, {"id": 122, "type": "multi", "question": "心理学测验工具的局限性主要是由于（）原因造成的。", "options": ["A. 测验内容的限制", "B. 测验取样的限制", "C. 使用上的限制", "D. 对于结果解释上的限制"], "answer": ["B", "C", "D"], "set": 2}, {"id": 123, "type": "multi", "question": "合理的咨询关系应该能够达到以下（）功能。", "options": ["A. 促进来访者的自我探索和自我发现", "B. 促进来访者的情绪适宜宣泄和向合理方向改善", "C. 提高来访者的自尊和自信", "D. 给来访者提供一个向咨询人员模仿和取得认同的机会"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 124, "type": "truefalse", "question": "要发展自己的个性、实现自己的价值，最重要的是要塑造健全的自我意识。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 125, "type": "truefalse", "question": "大学阶段的发展目的，在我们大一一入学就能确定下来了。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 126, "type": "truefalse", "question": "生涯发展理论的建立阶段是15~24岁。 [单选题] *25-44", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 127, "type": "truefalse", "question": "青春期之后是个体接受社会文化、学习社会角色的重要时期。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 128, "type": "single", "question": "个体对于一个稳定的家庭环境的需求是（）。", "options": ["A. 生理需求", "B. 安全需求", "C. 爱和归属的需求", "D. 尊重的需求"], "answer": ["B"], "set": 2}, {"id": 129, "type": "single", "question": "在网络人际关系中，打开电脑，登录网站，倾诉也罢，高谈也行，尽情地发泄，不必担心日后尴尬。这是网络人际关系的（）特点。", "options": ["A. 情绪性", "B. 随意性", "C. 宣泄性", "D. 自我性"], "answer": ["C"], "set": 2}, {"id": 130, "type": "single", "question": "为智力发展选择目标，这是非智力因素的（）。", "options": ["A. 强化作用", "B. 维持作用", "C. 驱动作用", "D. 定向作用"], "answer": ["D"], "set": 2}, {"id": 131, "type": "single", "question": "引起大学生学习疲劳的主要原因不包括（）。", "options": ["A. 学习动机强度不当", "B. 学习方法不当", "C. 学习压力过大", "D. 对学习保持浓厚的兴趣"], "answer": ["D"], "set": 2}, {"id": 132, "type": "single", "question": "人，最大的属性是他的（）。", "options": ["A. 生物属性", "B. 自然属性", "C. 社会属性", "D. 心理属性"], "answer": ["C"], "set": 2}, {"id": 133, "type": "single", "question": "个体对某一对象过分专注导致钻牛角尖;在收到明确的转移注意力的指令后，个体仍难以将注意力转移。这是（）。", "options": ["A. 注意力减弱", "B. 注意力分散", "C. 注意力转移困难", "D. 注意力范围狭小"], "answer": ["C"], "set": 2}, {"id": 134, "type": "single", "question": "学习活动主要需要的是（）。", "options": ["A. 有意注意", "B. 无意注意", "C. 无意识注意", "D. 主动注意"], "answer": ["A"], "set": 2}, {"id": 135, "type": "single", "question": "在弗洛伊德看来，饥渴及其他与生存有关的生理需要是（）。", "options": ["A. 由内在需要产生的驱动力", "B. 同生理有关的驱动力", "C. 同生存有关的驱动力", "D. 同自我或自我保护有关的驱动力"], "answer": ["D"], "set": 2}, {"id": 136, "type": "single", "question": "“一见钟情”，指的是爱情的（）特点。", "options": ["A. 自主性", "B. 直觉性", "C. 对等性", "D. 主动性"], "answer": ["B"], "set": 2}, {"id": 137, "type": "multi", "question": "爱情的社会性属性的内涵包括（）等。", "options": ["A. 爱情包含着理性而有目的的交往", "B. 爱情与社会的道德标准相关", "C. 爱情与美的领域", "D. 爱情的思想内容和社会发展水平的联系"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 138, "type": "multi", "question": "对于学习疲劳这个学习问题，调适方法是（）。", "options": ["A. 营造良好的学习氛围，培养浓厚的学习兴趣", "B. 学会合理安排作息，保证睡眠时间", "C. 科学用脑，合理营养", "D. 加强复习，防止遗忘"], "answer": ["A", "B", "C"], "set": 2}, {"id": 139, "type": "truefalse", "question": "动物没有学习，只有人才有学习。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 140, "type": "truefalse", "question": "在别人漫无目的地谈话时，我们也要无条件倾听，不应该打断别人。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 141, "type": "truefalse", "question": "恋爱心理一般要经历理想对象建构、初恋、热恋、心理相撞调适到感情平静五个阶段。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 142, "type": "truefalse", "question": "男性的第二性征的出现始于10岁左右。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 143, "type": "truefalse", "question": "自然主义即泛性论的爱情观，完全以性本能来定义男女之间的爱情。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 144, "type": "single", "question": "补充（），可以使人的记忆力明显增强。", "options": ["A. 乙酰胆碱", "B. 维生素A", "C. 维生素B", "D. 维生素D"], "answer": ["A"], "set": 2}, {"id": 145, "type": "single", "question": "斯滕伯格认为真正的爱情是一个（）。", "options": ["A. 等腰三角形", "B. 正方形", "C. 平行四边形", "D. 等边三角形"], "answer": ["D"], "set": 2}, {"id": 146, "type": "single", "question": "学习方式不当，事倍功半，而影响学习积极性;学习内容过多、负荷过重，而压力过大引起身心不适等等。这些属于学习对心理健康的（）。", "options": ["A. 积极影响", "B. 重度影响", "C. 过度影响", "D. 消极影响"], "answer": ["D"], "set": 2}, {"id": 147, "type": "single", "question": "有调查显示，女大学生对月经的情绪反应中感到“紧张”、“厌恶”、“不安”、“情绪低落”的共占了（）。", "options": ["A. 60.50%", "B. 50.50%", "C. 40.50%", "D. 30.50%"], "answer": ["A"], "set": 2}, {"id": 148, "type": "single", "question": "（）是指，个人的性满足与社会文化和谐统一，性权力与社会责任的统一，能建立社会认可的和谐的性关系，个人的性角色、性行为、性观念与社会文化和谐统一。", "options": ["A. 性文化和谐", "B. 性文化健康", "C. 性社会健康", "D. 性社会和谐"], "answer": ["C"], "set": 2}, {"id": 149, "type": "single", "question": "各门学科都有其独特的规律，都有其基本的学科结构。因此在学习时，要掌握各门学科的基本知识结构，思考运用何种方法把它们联系起来。这是根据（）来选择学习方法。", "options": ["A. 不同学科", "B. 不同内容", "C. 不同结构", "D. 不同知识"], "answer": ["A"], "set": 2}, {"id": 150, "type": "single", "question": "人往往难以全面客观地了解自己，因此我们可以在与他人的交往中、与别人的比较中以及别人对自己的态度和评价中认识、调整、改进自己，提高自我认识水平。这是人际交往的（）功能。", "options": ["A. 心理保健", "B. 个性发展", "C. 认识自我", "D. 协同合作"], "answer": ["C"], "set": 2}, {"id": 151, "type": "single", "question": "在大学同学中，以学习与班级活动为主的是（）。", "options": ["A. 班级同学关系", "B. 宿舍关系", "C. 老乡关系", "D. 社团关系"], "answer": ["A"], "set": 2}, {"id": 152, "type": "multi", "question": "人际交往的功能包括（）等。", "options": ["A. 个性发展的功能", "B. 交流信息的功能", "C. 心理保健的功能", "D. 认识自我的功能"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 153, "type": "multi", "question": "当在恋爱中遇到挫折时，我们应该（）。", "options": ["A. 在必要时寻求社会支持", "B. 情绪宣泄与管理", "C. 接受已经发生的事无法改变的事实", "D. 从挫折中学习"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 154, "type": "multi", "question": "大学生性心理的矛盾冲突包括（）。", "options": ["A. 成熟的性生理与不成熟的性心理存在矛盾", "B. 性意识的强烈性与表现上的隐蔽性之间存在矛盾", "C. 性的社会性、道德性要求与性的压抑性、放纵性之间存在矛盾", "D. 性心理的开放性与保守性之间存在矛盾"], "answer": ["A", "B", "C"], "set": 2}, {"id": 155, "type": "multi", "question": "大学生独特的恋爱心理现象包括（）。", "options": ["A. 注重恋爱过程，轻视恋爱结果", "B. 主观学业第一，客观爱情至上", "C. 恋爱观念开放，传统道德淡化", "D. 失恋现象普遍，心理反应多元"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 156, "type": "truefalse", "question": "在学习结束时，立即用2分钟进行复习，效果最好，也称黄金2分钟。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 157, "type": "truefalse", "question": "爱情是一种自然属性和社会属性相结合的亲密关系。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 158, "type": "truefalse", "question": "学习动机在适宜的强度下最适合，动机太强或太弱，都会影响学习效果。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 159, "type": "truefalse", "question": "人际交往实际上是一种心理关系。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 160, "type": "truefalse", "question": "性的本质体现是自然属性。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 161, "type": "single", "question": "大学生在校期间要积极主动了解所学专业的发展趋势、培养目标及其适用领域;注意搜集社会各方面的用人信息，不断修正职业意向;在求职过程中，主动和用人单位接触。这是（）。", "options": ["A. 平等择业观念", "B. 高尚择业观念", "C. 主动择业观念", "D. 多次择业观念"], "answer": ["C"], "set": 2}, {"id": 162, "type": "single", "question": "掌握必要的择业技能不包括（）。", "options": ["A. 设计精美的自荐材料", "B. 穿着标新立异", "C. 大量搜集求职信息", "D. 把握面试的相关技巧"], "answer": ["B"], "set": 2}, {"id": 163, "type": "single", "question": "（）:心理咨询始终遵循着教育的，而不是临床的、治疗的或医学的模式，咨询对象不是病人，而被认为是在应付生活中的压力和任务方面需要帮助的正常人。", "options": ["A. 《心理卫生通讯》", "B. 《咨询心理学手册》", "C. 《心理学百科全书》", "D. 《职业名称词典》"], "answer": ["C"], "set": 2}, {"id": 164, "type": "single", "question": "（）是指将客体纳入主体已有认知结构或行为模式的过程。", "options": ["A. 顺应", "B. 发展", "C. 接纳", "D. 同化"], "answer": ["D"], "set": 2}, {"id": 165, "type": "single", "question": "从青春期到成年的大约10年时间，这是自我意识发展的（）。", "options": ["A. 客观发展时期", "B. 主观化时期", "C. 客观化时期", "D. 主观发展时期"], "answer": ["B"], "set": 2}, {"id": 166, "type": "single", "question": "马斯洛是（）的主要代表人物之一。", "options": ["A. 人本主义心理学", "B. 认知心理学", "C. 精神分析心理学", "D. 行为主义心理学"], "answer": ["A"], "set": 2}, {"id": 167, "type": "single", "question": "生涯发展理论的维持阶段处于（）。", "options": ["A. 15-24岁", "B. 31-44岁", "C. 25-44岁", "D. 45-65岁"], "answer": ["D"], "set": 2}, {"id": 168, "type": "multi", "question": "大学生常见的适应心理问题包括（）等。", "options": ["A. 情绪适应问题", "B. 人际适应问题", "C. 学习适应问题", "D. 生活时应问题"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 169, "type": "multi", "question": "舒伯提出了生涯发展理论，其中探索阶段包括（）。", "options": ["A. 试探期", "B. 能力期", "C. 过渡期", "D. 试验并稍作承诺期"], "answer": ["A", "C", "D"], "set": 2}, {"id": 170, "type": "multi", "question": "自我调节的方法有（）等。", "options": ["A. 自我暗示法", "B. 自我宣泄法", "C. 自我放松法", "D. 移情转移法"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 171, "type": "truefalse", "question": "美国心理学家荣格提出了心理冲突的效价合力理论。他认为，在构成各种可能选择的目标中，效价合力是其中主要的决定因素。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 172, "type": "truefalse", "question": "双趋冲突是指两种或两种以上目标同时吸引个体，而个体只能选择其中一种时所产生的内心冲突。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 173, "type": "truefalse", "question": "要达到自我统一，就是放弃“理想我”，迁就“现实我”。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 174, "type": "single", "question": "18世纪和19世纪，（）在西方曾一度盛行。", "options": ["A. 超现实主义的爱情观", "B. 泛性论的爱情观", "C. 性爱和情爱结合的爱情观", "D. 超理性主义的爱情观"], "answer": ["B"], "set": 2}, {"id": 175, "type": "single", "question": "斯滕伯格把没有承诺的爱称为（）。", "options": ["A. 糊涂的爱", "B. 愚昧的爱", "C. 空洞的爱", "D. 浪漫的爱"], "answer": ["D"], "set": 2}, {"id": 176, "type": "single", "question": "学者曾对大学生初次发生性关系的原因进行了调查，调查结果发现，男生出于爱与女友发生性关系的占（）。", "options": ["A. 23%", "B. 25%", "C. 28%", "D. 31%"], "answer": ["B"], "set": 2}, {"id": 177, "type": "single", "question": "通过与异性交往而建立的人际关系是（）。", "options": ["A. 情缘型", "B. 同室型", "C. 地域型", "D. 网友型"], "answer": ["A"], "set": 2}, {"id": 178, "type": "single", "question": "个体出现性冲动后，知道如何排解、调控自己的性冲动，能够使自己的性行为与性生活符合社会的性规范和性要求。这是具有较强的（）能力。", "options": ["A. 性适应", "B. 性调控", "C. 性规范", "D. 性约束"], "answer": ["A"], "set": 2}, {"id": 179, "type": "single", "question": "表现出波动、恐惧的情感关系的是（）的依恋关系。", "options": ["A. 波动型", "B. 焦虑型", "C. 回避型", "D. 恐惧型"], "answer": ["B"], "set": 2}, {"id": 180, "type": "single", "question": "沃尔斯特是（）的代表人物。", "options": ["A. 超现实主义的爱情观", "B. 泛性论的爱情观", "C. 超理性主义的爱情观", "D. 性爱和情爱结合的爱情观"], "answer": ["D"], "set": 2}, {"id": 181, "type": "single", "question": "随着一夫一妻制婚姻的确立，爱情的导向获得了确定的对象，（）特点就日益强化起来了，这是人类文明进步的产物。", "options": ["A. 确定性", "B. 排他性", "C. 对等性", "D. 独一性"], "answer": ["B"], "set": 2}, {"id": 182, "type": "single", "question": "在选择对象时，无论男女都不仅注意由遗传决定的生物学特点（眼睛、头发、体形等），而且关注对象的社会评价（社会地位、物质条件、教育程度等）。这说明爱情的（）在选择对象时发挥着重要作用。", "options": ["A. 心理成分", "B. 物质成分", "C. 认知成分", "D. 社会成分"], "answer": ["D"], "set": 2}, {"id": 183, "type": "single", "question": "有的大学生喜欢上某个异性，又很爱面子，怕对方拒绝，迟迟不敢大胆表白，还摆出一副对异性不屑一顾、根本不感兴趣的样子，这是缺乏（）。", "options": ["A. 发展爱的能力", "B. 拒绝爱的能力", "C. 接受爱的能力", "D. 表达爱的能力"], "answer": ["D"], "set": 2}, {"id": 184, "type": "multi", "question": "孤独包括（）等内容。", "options": ["A. 与他人之间的隔离，虽然与他人有联系，但是交往频度低，感觉自己形单影只", "B. 沉默寡言，较少参加集体活动，缺少知心朋友", "C. 与他人关系的疏离，想要与他人建立更亲密的关系，但是交往深度不够，达不到自己所期望的程度", "D. 与他人联系不够广泛，人际交往面狭窄，朋友少"], "answer": ["A", "C", "D"], "set": 2}, {"id": 185, "type": "multi", "question": "大学生人际交往中常见的困扰包括（）等。", "options": ["A. 孤独", "B. 羞怯", "C. 嫉妒", "D. 自卑"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 186, "type": "multi", "question": "爱情的特点包括（）。", "options": ["A. 自主性", "B. 对等性", "C. 直觉性", "D. 排他性"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 187, "type": "truefalse", "question": "性别角色意识是一个人心理化成熟的重要体现，是心理健康的重要标志。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 188, "type": "truefalse", "question": "苏联社会心理学家包达列夫提出了刻板效应，又称定型效应。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 189, "type": "truefalse", "question": "兴趣是激励和维持人的行动，并将行动导向某一目标，以满足个体某种需要的内部心理因素。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 190, "type": "truefalse", "question": "一定的智力水平是心理健康的基础，而潜能的开发状况则与心理健康状况直接相关。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 191, "type": "single", "question": "在（）一书中，作者认为“自负”是对“自卑”的补偿，由于“自卑情结”的存在，就努力发掘个体在其他方面的优势，并加以强化。", "options": ["A. 《自卑与超越》", "B. 《人性的研究》", "C. 《个体心理学的理论与实践》", "D. 《自卑与生活》"], "answer": ["A"], "set": 2}, {"id": 192, "type": "single", "question": "在人格发展八阶段理论的学前期，个体解决危机能形成（）。", "options": ["A. 需求得到满足的信心，有安全感", "B. 能自我控制，行动有信心", "C. 有目标、有方向，主动进取", "D. 具有求学、做事和待人的基本能力"], "answer": ["C"], "set": 2}, {"id": 193, "type": "single", "question": "（）认为人类所有的行为都是通过学习得来的，个人的心理障碍直接表现为一种行为适应不良，也是由于某种歪曲的学习结果所致，改造行为不良的唯一方法依然是学习。", "options": ["A. 人本主义心理学", "B. 认知心理学", "C. 精神分析心理学", "D. 行为主义心理学"], "answer": ["D"], "set": 2}, {"id": 194, "type": "single", "question": "自我意识对人的心理和行为的调控作用，能指引和确定个体行为的方向，协调个体和环境的关系;自我意识不仅能适应世界，而且能自觉地创造世界，创造自己，这是自我意识的（）特点。", "options": ["A. 个体性", "B. 能动性", "C. 差异性", "D. 社会性"], "answer": ["B"], "set": 2}, {"id": 195, "type": "single", "question": "第二学年的生涯规划目标是（）。", "options": ["A. 转换职业角色", "B. 确定兴趣职业", "C. 扩展职业视野", "D. 发现自我特点"], "answer": ["C"], "set": 2}, {"id": 196, "type": "single", "question": "金斯伯格提出的职业生涯发展的幻想期处于（）。", "options": ["A. 11岁之前的儿童期", "B. 12岁之前的儿童期", "C. 13岁之前的儿童期", "D. 10岁之前的儿童期"], "answer": ["A"], "set": 2}, {"id": 197, "type": "single", "question": "情绪ABC理论是（）的观点。", "options": ["A. 人本主义心理学", "B. 认知心理学", "C. 精神分析心理学", "D. 行为主义心理学"], "answer": ["B"], "set": 2}, {"id": 198, "type": "multi", "question": "悦纳自我的内容包括（）等。", "options": ["A. 接受自己，喜欢自己，不苛求自己，觉得自己独一无二，有高度的自尊和自信，有价值感、自豪感、愉快感和满足感", "B. 性情开朗，对生活乐观，对未来充满憧憬，积极情绪多于消极情绪", "C. 能平静而又理智地看待自己的长处与短处，冷静地对待自己的得与失", "D. 既不以虚幻的自我补偿内心的空虚，也不以消极回避漠视自己的现实，更不以怨恨、自责甚至厌恶来否定自己"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 199, "type": "multi", "question": "心理健康的特点（）。", "options": ["A. 心理健康的状态具有相对性", "B. 心理健康的状态具有连续性", "C. 心理健康的状态具有可逆性", "D. 心理健康的状态具有动态性"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 200, "type": "multi", "question": "按照适应的程度，可以划分为（）。", "options": ["A. 无适应", "B. 欠适应", "C. 中度适应", "D. 过分适应"], "answer": ["B", "C", "D"], "set": 2}, {"id": 201, "type": "truefalse", "question": "无意识不在心理学的研究范围之内。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 202, "type": "truefalse", "question": "明确的目标是大学生进行学习活动的战略前提，是提高学习积极性、自觉性和学习效率的关键。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 203, "type": "single", "question": "大学生因共同的兴趣爱好而结成的人际关系，如文学社、剧团、各类球队以及武术、心理协会等各种学生社团，这是大学同学之间的（）关系。", "options": ["A. 同室型", "B. 兴趣型", "C. 地域型", "D. 同乡型"], "answer": ["B"], "set": 2}, {"id": 204, "type": "single", "question": "有些大学生在现实世界中未必能够体会到助人或者被助的快乐与幸福，但是在虚拟世界因为助人而体会到自我价值，或者因为被助而体会到社会的温暖与善良。这是网络人际交往的（）特点。", "options": ["A. 宣泄性", "B. 隐匿性", "C. 随意性", "D. 互助性"], "answer": ["D"], "set": 2}, {"id": 205, "type": "single", "question": "女孩在（）时达到了生长发育的陡增高峰。", "options": ["A. 11-12岁", "B. 10-11岁", "C. 9-10岁", "D. 12-13岁"], "answer": ["A"], "set": 2}, {"id": 206, "type": "single", "question": "把长颈鹿、萝卜、斑马、潜水员、菠菜、面包师、黄鼠狼、南瓜、打字员等60个词按照动物、植物、人名、职业去记忆时，记忆效果更好。这是运用了（）。", "options": ["A. 分类记忆法", "B. 联想记忆法", "C. 形象比拟记忆法", "D. 简约记忆法"], "answer": ["A"], "set": 2}, {"id": 207, "type": "single", "question": "大学生的识记学习主要依靠（）。", "options": ["A. 无意识记", "B. 目的识记", "C. 意义识记", "D. 有意识记"], "answer": ["D"], "set": 2}, {"id": 208, "type": "single", "question": "择偶的要求不仅是要寻找一位异性，而且还要满足个人审美的需要、爱的需要、个人生活幸福与自我发展的需要，还要考虑对方的兴趣、爱好、学历、职业和家庭等社会因素。这是性的（）。", "options": ["A. 心理属性", "B. 社会属性", "C. 自然属性", "D. 生理属性"], "answer": ["B"], "set": 2}, {"id": 209, "type": "single", "question": "表现出开放、稳定的情感关系的是（）的依恋关系。", "options": ["A. 安全型", "B. 稳定型", "C. 开放型", "D. 智慧型"], "answer": ["A"], "set": 2}, {"id": 210, "type": "multi", "question": "大学生健康恋爱要正确处理的各种关系包括（）。", "options": ["A. 爱情与友情", "B. 爱情与亲情", "C. 爱情与学业", "D. 爱情与人生"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 211, "type": "multi", "question": "爱情观主要有（）。", "options": ["A. 超理性主义的爱情观", "B. 超现实主义的爱情观", "C. 自然主义即泛性论的爱情观", "D. 性爱与情爱相结合的爱情观"], "answer": ["A", "C", "D"], "set": 2}, {"id": 212, "type": "multi", "question": "应试心理调适包括（）。", "options": ["A. 端正应试动机", "B. 保持身体健康", "C. 增强应试信心", "D. 掌握应试技巧"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 213, "type": "multi", "question": "以下属于技能学习的是（）。", "options": ["A. 学习提高记忆力的方法", "B. 学习解题技巧", "C. 学习骑自行车", "D. 学习游泳"], "answer": ["C", "D"], "set": 2}, {"id": 214, "type": "truefalse", "question": "近因效应是指在社会认知过程中第一印象对人的认知有着极其重要的作用。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 215, "type": "truefalse", "question": "由于疲劳、生长、机体损伤以及其他生理变化所产生的变化也是通过学习活动发生的。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 216, "type": "truefalse", "question": "性压抑的结果不仅有碍于性心理的健康发展，严重者还会导致性变态或性过错。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 217, "type": "single", "question": "对人际交往特别敏感，对人际交往中的负面因素考虑太多，总是极力回避，交往中常常缺乏自信，畏首畏尾，这是（）的表现。", "options": ["A. 害羞", "B. 抑郁", "C. 自卑", "D. 恐惧"], "answer": ["C"], "set": 2}, {"id": 218, "type": "single", "question": "在人格发展八阶段理论的学龄期中，个体需要发展的品质是（）。", "options": ["A. 希望", "B. 关系", "C. 能力", "D. 目的"], "answer": ["C"], "set": 2}, {"id": 219, "type": "single", "question": "往往缺乏自我批评意识，分不清自尊、好胜、好强、不甘落后和唯我独尊，以自我为中心，盛气凌人，听不得不同意见，没有自知之明，总认为自己对别人错，把自己的意志强加于别人身上等等，这是（）的表现。", "options": ["A. 自负", "B. 自信", "C. 自我中心", "D. 傲娇"], "answer": ["A"], "set": 2}, {"id": 220, "type": "single", "question": "自卑并非一无是处，（）对自卑有独到的看法。", "options": ["A. 斯金纳", "B. 班杜拉", "C. 弗洛伊德", "D. 阿德勒"], "answer": ["D"], "set": 2}, {"id": 221, "type": "single", "question": "从（）角度讲，适应是指当外部环境发生变化时，个体为应对和顺应环境，通过自我调节系统做出能动反应，使自己的心理活动和行为方式更加符合环境变化和自身发展的要求，使主体与环境达到新的平衡的过程。", "options": ["A. 生态学", "B. 心理学", "C. 生理学", "D. 行为学"], "answer": ["B"], "set": 2}, {"id": 222, "type": "single", "question": "偏头痛这个疾病可能与（）有关。", "options": ["A. 追求尽善尽美，刻板，好争强", "B. 过分依赖，希望被人照顾", "C. 听话，带有强迫性，抑郁，心情矛盾", "D. 压抑，愤怒，争强好胜"], "answer": ["A"], "set": 2}, {"id": 223, "type": "single", "question": "小张考了计算机、英语、普通话等多本职业技能证书，觉得找工作很容易。但他没有去了解当前的就业形势、用人单位的招聘需求，结果找工作时连连碰壁。这是（）。", "options": ["A. 意志品质较差，在选择职业上依赖性太强", "B. 缺乏认知能力，职业生涯发展目标不明确", "C. 缺乏判断能力，职业选择时心理冲突严重", "D. 以自我为中心，在职业价值观上出现错误"], "answer": ["B"], "set": 2}, {"id": 224, "type": "multi", "question": "大学生的心理发展的特点包括（）。", "options": ["A. 过渡性", "B. 可塑性", "C. 矛盾性", "D. 差异性"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 225, "type": "truefalse", "question": "在绝大部分情况下，心理咨询师都会遵循保密原则，保护来访者的隐私。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 226, "type": "truefalse", "question": "在心理咨询中，咨询者借助自己的专业技能创设一种良好的人际关系氛围是十分重要的。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 227, "type": "truefalse", "question": "互联网咨询是目前最好、最有效的主要方式。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 228, "type": "truefalse", "question": "交互作用心理学中认为“我不行，你也不行”的关系属于自卑自怜型。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 229, "type": "single", "question": "生涯初步确定并检验其成为长期职业生活的可能性，若不适合则重新确定方向，这是处于生涯发展理论是（）。", "options": ["A. 尝试期", "B. 试验并稍作承诺期", "C. 检验期", "D. 确定期"], "answer": ["B"], "set": 2}, {"id": 230, "type": "single", "question": "世界卫生组织公布的研究报告表明，工业化发达国有占总死亡人数比例为（）的人死于与生活习惯有关的疾病，如癌症、心血管病。", "options": ["A. 0.7", "B. 0.75", "C. 0.8", "D. 0.85"], "answer": ["B"], "set": 2}, {"id": 231, "type": "single", "question": "每一位大学生都应该将个人职业理想与时代理想统一起来，在社会需要的时候，要调整自己的择业意愿，去满足社会需要，这是（）。", "options": ["A. 平等择业观念", "B. 高尚择业观念", "C. 主动择业观念", "D. 多次择业观念"], "answer": ["B"], "set": 2}, {"id": 232, "type": "single", "question": "大学生把竞争看成是一种正常现象，在学习、能力上与同学开展友好竞争，遵循择业过程中的竞争规则，这是树立（）。", "options": ["A. 就业准备意识", "B. 就业法律意识", "C. 就业风险意识", "D. 就业竞争意识"], "answer": ["D"], "set": 2}, {"id": 233, "type": "single", "question": "我们的长相、身高、体重及某些属于公开性质的资料，性别、特长等信息，属于乔韩视窗中的（）窗口。", "options": ["A. 隐藏我", "B. 潜能我", "C. 公开我", "D. 盲目我"], "answer": ["C"], "set": 2}, {"id": 234, "type": "single", "question": "“心理特点符合年龄特征”这个评价要素属于（）基本维度。", "options": ["A. 情绪稳定", "B. 基本心理能力", "C. 角色与功能协调", "D. 内外协调适应"], "answer": ["D"], "set": 2}, {"id": 235, "type": "single", "question": "两门选修课都是自己喜欢的，但是由于时间等因素只能选一个，这是（）。", "options": ["A. 心理冲突", "B. 双避冲突", "C. 双趋冲突", "D. 趋避冲突"], "answer": ["C"], "set": 2}, {"id": 236, "type": "multi", "question": "意志存在（）特征。", "options": ["A. 提高自控力", "B. 明确的目的性", "C. 以随意运动为基础", "D. 与克服困难相联系"], "answer": ["B", "C", "D"], "set": 2}, {"id": 237, "type": "multi", "question": "良好的职业思想意识包括（）等。", "options": ["A. 就业准备意识", "B. 就业竞争意识", "C. 就业风险意识", "D. 就业法律意识"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 238, "type": "multi", "question": "以下属于大学生常见矛盾冲突的是（）。", "options": ["A. 独立性和依赖性的矛盾", "B. 理想性和现实性的矛盾", "C. 强烈的成才意识与知识经验不足的矛盾", "D. 性生理成熟和性心理成熟相对迟缓的矛盾"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 239, "type": "truefalse", "question": "青年期是少年儿童向成年人转变的过渡期，也是少年心理向成人心理过渡的关键期。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 240, "type": "truefalse", "question": "心理咨询可以无限度地帮助人们解决许多涉及心理健康的问题。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 241, "type": "truefalse", "question": "人和动物最重要的不同之处就是人的自主性，即人能主动地了解自己、感受自己，并能根据自己的意愿调控自己，使自己能在不断变化的社会情境中发展出与之相称的适应方式。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 242, "type": "truefalse", "question": "在自尊不受威胁的情况下，人们愿意选择比自己弱的人比较以维护自尊心，保持心理平衡。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 243, "type": "truefalse", "question": "悦纳校园文化，就是既接受先进向上的、健康的校园文化的熏陶，也接受落后的、不健康的校园文化。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 244, "type": "multi", "question": "性心理发展五阶段认为，肛门期是在（）之间。", "options": ["A. 2-3岁", "B. 1-2岁", "C. 1-3岁                                                                                                                                 /；破iiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiiii                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                                         ，，", "D. 0-2岁", "A. 能动学习", "B. 接受学习", "C. 发现学习", "D. 主动学习"], "answer": ["A", "C"], "set": 2}, {"id": 245, "type": "single", "question": "（）是个体以脑的神经活动为基础，反映客观事物的认知能力，它是一个人重要的个性心理特征。", "options": ["A. 需要", "B. 智力", "C. 能力", "D. 兴趣"], "answer": ["B"], "set": 2}, {"id": 246, "type": "single", "question": "（）认为学习是有意义的心理过程，而不是机械的刺激和反应联结的总和。", "options": ["A. 布鲁纳", "B. 托尔曼", "C. 马斯洛", "D. 罗杰斯"], "answer": ["D"], "set": 2}, {"id": 247, "type": "single", "question": "人际关系是（）的一个侧面，表现为人与人之间的亲近、疏远与好恶。", "options": ["A. 自然关系", "B. 心理关系", "C. 现实关系", "D. 社会关系"], "answer": ["D"], "set": 2}, {"id": 248, "type": "single", "question": "部分同学看到自己周围的人都谈了恋爱，怕自己不谈会吃亏，也怕别人看不起，因而也盲目去谈恋爱。这是恋爱观中的（）。", "options": ["A. 从众型", "B. 盲目型", "C. 无脑型", "D. 无知型"], "answer": ["A"], "set": 2}, {"id": 249, "type": "single", "question": "（）的学习主要是指通过一系列心智活动，在人脑中建立起相应的认知结构。", "options": ["A. 知识", "B. 技能", "C. 行为准则", "D. 以思维活动为主的能力"], "answer": ["A"], "set": 2}, {"id": 250, "type": "single", "question": "（）认为学习的机制在于建立条件反射与试误，强调在学习过程中不断地纠正错误的联结，通过强化直至正确的联结。", "options": ["A. 学习的强化理论", "B. 学习的联结理论", "C. 学习的条件反射理论", "D. 学习的试误理论"], "answer": ["B"], "set": 2}, {"id": 251, "type": "single", "question": "学习过程中存在尝试与错误的过程，在多次尝试中，有的预期被证实，有的则未被证实。托尔曼认为，预期的证实就是（）。", "options": ["A. 内在强化", "B. 外在强化", "C. 内在动机", "D. 外在动机"], "answer": ["A"], "set": 2}, {"id": 252, "type": "multi", "question": "一个人懂得“同感”的重要性，但不能够做到“同感”。这是因为（）。", "options": ["A. 他人心理有问题，我们无法同感", "B. 不懂得必要的方法", "C. 自身有心理问题或者心理情结阻碍了我们", "D. 他人不愿意与我们同感"], "answer": ["B", "C"], "set": 2}, {"id": 253, "type": "multi", "question": "记忆力减退的调适方法包括（）等。", "options": ["A. 充分利用有意识记", "B. 尽量运用意义识记，促使机械识记意义化", "C. 手、脑、眼、耳并用，提高识记效果", "D. 养成注意习惯并重视训练的方法和技巧"], "answer": ["A", "B", "C"], "set": 2}, {"id": 254, "type": "multi", "question": "大学学习的特点包括（）等。", "options": ["A. 自主选择性", "B. 专业性", "C. 形式多样化", "D. 研究探索与创新性"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 255, "type": "truefalse", "question": "儿童的依恋关系，会影响成年之后的情感关系。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 256, "type": "truefalse", "question": "学习对我们的身心健康只可能带来益处，不可能产生不良的影响。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 257, "type": "truefalse", "question": "兴趣是激励和维持人的行动，并将行动导向某一目标，以满足个体某种需要的内部心理因素。 [单选题] *动机", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 258, "type": "truefalse", "question": "宿舍同学关系以兴趣和工作交往为主。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 259, "type": "single", "question": "在交往中我们要认清别人和自己的差异，另外需要接受自己，客观地认识自己，不断完善自己，以促进交往顺利进行。这是在消除（）对人际交往的负面影响。", "options": ["A. 首因效应", "B. 晕轮效应", "C. 投射效应", "D. 角色固着"], "answer": ["C"], "set": 2}, {"id": 260, "type": "single", "question": "从（）分析，人际交往是指在社会活动过程中，人与人之间一切直接或间接的相互作用，包括人与人之间的信息传递、情感交流、思想沟通以及相互间施加影响等心理联系过程及物质交换过程。", "options": ["A. 动态角度", "B. 静态角度", "C. 主动角度", "D. 被动角度"], "answer": ["A"], "set": 2}, {"id": 261, "type": "single", "question": "个体和家庭、学生和班级、学生和社团等之间的关系属于大学生人际关系中的（）的关系。", "options": ["A. 个体与个体之间", "B. 个体与社会之间", "C. 个体与群体之间", "D. 群体与群体之间"], "answer": ["C"], "set": 2}, {"id": 262, "type": "single", "question": "大约有（）的人认为自己曾体验过明显的羞怯。", "options": ["A. 60%", "B. 70%", "C. 80%", "D. 90%"], "answer": ["C"], "set": 2}, {"id": 263, "type": "single", "question": "大学生因来自相同地域而结成的人际关系，这是（）。", "options": ["A. 兴趣型", "B. 同室型", "C. 地域型", "D. 同乡型"], "answer": ["D"], "set": 2}, {"id": 264, "type": "single", "question": "有些同学平时不爱上课，不愿看书;学习无计划，对学习产生厌恶及逃避心理;学习时无法集中注意力，无精打采，作业拖拉;无成就感，无抱负和理想，无求知欲和上进心等等。这些属于（）的表现。", "options": ["A. 学习动机不强", "B. 学习动机过强", "C. 注意力不集中", "D. 没有明确目标"], "answer": ["A"], "set": 2}, {"id": 265, "type": "single", "question": "个体融入集体，与他人建立亲密的关系，这是为了满足（）。", "options": ["A. 生理需求", "B. 安全需求", "C. 爱和归属的需求", "D. 尊重的需求"], "answer": ["C"], "set": 2}, {"id": 266, "type": "single", "question": "同一班级、同一地域、同一宿舍的同学，彼此间可能比其他同学更为熟悉。这说明（）会影响我们的人际交往。", "options": ["A. 空间距离", "B. 兴趣爱好", "C. 交往频率", "D. 个性品质"], "answer": ["A"], "set": 2}, {"id": 267, "type": "multi", "question": "驱力包括（）基本类型。", "options": ["A. 与温饱、安全有关的驱动力", "B. 与自我或自我保护有关的驱动力", "C. 与自我实现有关的驱动力", "D. 性爱的驱动力"], "answer": ["B", "D"], "set": 2}, {"id": 268, "type": "multi", "question": "建立良好人际交往的方法包括（）。", "options": ["A. 倾听", "B. 幽默", "C. 共情", "D. 回避"], "answer": ["A", "B", "C"], "set": 2}, {"id": 269, "type": "multi", "question": "在恋爱中需要完成的重要心理任务是（）。", "options": ["A. 要更了解自己", "B. 要培养爱人的能力", "C. 要学会解决矛盾", "D. 要丰富生活经验"], "answer": ["A", "B"], "set": 2}, {"id": 270, "type": "truefalse", "question": "在复习频率上，识记结束后的近期时间内应该安排较少的复习频次，随着时间的进展，再增加复习频次。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 271, "type": "truefalse", "question": "知识的学习是学生学习的主要内容。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 272, "type": "single", "question": "考虑需要、兴趣、能力及机会，作暂时的决定，并在幻想、讨论、课业及工作种加以尝试，这是（）的主要内容。", "options": ["A. 建立期", "B. 试探期", "C. 过渡期", "D. 能力期"], "answer": ["B"], "set": 2}, {"id": 273, "type": "single", "question": "自我意识在个体身上发生发展，每个人的自我意识存在个体差异，这是自我意识的（）特点。", "options": ["A. 个体性", "B. 差异性", "C. 能动性", "D. 自主性"], "answer": ["A"], "set": 2}, {"id": 274, "type": "single", "question": "“我是男生”，这个自我认知属于（）。", "options": ["A. 生理自我", "B. 心理自我", "C. 现实自我", "D. 社会自我"], "answer": ["A"], "set": 2}, {"id": 275, "type": "single", "question": "“自爱、自尊、自信、自卑、内疚、自豪、责任感、优越感、成就感和自我效能感“等内容，属于（）。", "options": ["A. 自我认识", "B. 自我体验", "C. 自我调控", "D. 自我管理"], "answer": ["B"], "set": 2}, {"id": 276, "type": "multi", "question": "咨询心理学在总体上可以被分为（）。", "options": ["A. 与个人学习活动有关的各类咨询", "B. 与个人发展有关的各类咨询", "C. 与个人职业活动有关的各类咨询", "D. 与个人家庭生活有关的各类咨询"], "answer": ["B", "C"], "set": 2}, {"id": 277, "type": "multi", "question": "目前国内心理咨询机构主要包括以下（）类别。", "options": ["A. 学校心理咨询中心", "B. 学校就业指导中心", "C. 附设在各种医疗机构中的心理咨询门诊", "D. 更加专业一点的心理机构"], "answer": ["A", "C", "D"], "set": 2}, {"id": 278, "type": "multi", "question": "在就业准备中，大学生要做好的能力方面的准备，掌握（）等能力。", "options": ["A. 语言文字表达能力", "B. 交际能力", "C. 辩证思维能力", "D. 组织管理能力"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 279, "type": "truefalse", "question": "在团体咨询中，在团体中讨论的问题不可以告诉团体以外的绝大多数人，但可以告诉自己的亲人。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 280, "type": "truefalse", "question": "心理咨询活动主要是通过会谈来实现的。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 281, "type": "truefalse", "question": "主动适应和被动适应对于我们自身发展的影响是相同的。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 282, "type": "single", "question": "在大学同学中，以情感交往为主的是（）。", "options": ["A. 班级同学关系", "B. 宿舍关系", "C. 老乡关系", "D. 社团关系"], "answer": ["C"], "set": 2}, {"id": 283, "type": "single", "question": "（）型的学生在清晨学习效率要比晚上的更高。", "options": ["A. “鸭子”", "B. “猫头鹰”", "C. “百灵鸟”", "D. “麻雀”"], "answer": ["C"], "set": 2}, {"id": 284, "type": "single", "question": "（）说，余尝谓读书有三到:心到、眼到、口到。", "options": ["A. 程颐", "B. 李贽", "C. 王阳明", "D. 朱熹"], "answer": ["D"], "set": 2}, {"id": 285, "type": "multi", "question": "大学生要根据（）来寻求适合的学习方法。", "options": ["A. 个体生理状态", "B. 个性特点", "C. 思维的状态", "D. 不同学科"], "answer": ["B", "C", "D"], "set": 2}, {"id": 286, "type": "multi", "question": "我国学者认为性意识的阶段包括（）。", "options": ["A. 性意识潜伏——不避嫌接触期", "B. 性意识朦胧——疏远异性期", "C. 性意识觉醒——异性向往期", "D. 性意识成熟阶段——两性恋爱期"], "answer": ["B", "C", "D"], "set": 2}, {"id": 287, "type": "multi", "question": "常见的记忆力问题包括（）。", "options": ["A. 识记速度慢", "B. 注意力减弱", "C. 保持时间短", "D. 回忆效果差"], "answer": ["A", "C", "D"], "set": 2}, {"id": 288, "type": "multi", "question": "大学生人际交往的特点包括（）。", "options": ["A. 高期望值与高挫折感交织", "B. 情感型交往与功利型交往兼有", "C. 交往范围拓展与宿舍中心并存", "D. 网络社交与现实交往结合"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 289, "type": "multi", "question": "循序渐进的基本要求是（）。", "options": ["A. 学习要掌握学科的知识结构，要由浅到深、由点到面地逐步进行，尤其要注意新旧知识之间的联系。", "B. 学习要遵循人的认识规律，一步一步的进行。", "C. 遵循自己的智能发展规律，量力而行，逐步建立适合自己的认识结构，不可超越自己的实际情况，盲目地追求不可能达到的目标。", "D. 学习要遵循知识积累的规律，从质到量，逐步提高。"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 290, "type": "truefalse", "question": "爱情的对等性是指双方都有同等的爱与不爱的权力。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 291, "type": "truefalse", "question": "回避型的儿童会表现出波动、恐惧的情感关系。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 292, "type": "truefalse", "question": "了解学习的意义所在，是激发大学生学习动机最直接有效的途径。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 293, "type": "truefalse", "question": "社会价值观是影响大学生学习动机的基本因素。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 294, "type": "single", "question": "金斯伯格提出的职业生涯发展中尝试期的职业需求特点是（）。", "options": ["A. 使职业偏好逐渐具体化、特定化并实现职业偏好", "B. 发展自我形象，发展对工作世界的正确态度，并了解工作的意义", "C. 有职业兴趣，但不仅限于此，更多的客观地审视自身各方面的条件、能力;开始注意职业角色的社会地位、社会意义以及社会对该职业的需要", "D. 考虑需要、兴趣、能力及机会，作暂时的决定，并在幻想、讨论、课业及工作中加以尝试"], "answer": ["C"], "set": 2}, {"id": 295, "type": "single", "question": "“狼孩”的故事代表的是（）的影响。", "options": ["A. 自身生活方式", "B. 个性心理特征", "C. 社会环境", "D. 遗传基因"], "answer": ["C"], "set": 2}, {"id": 296, "type": "single", "question": "第四学年的生涯规划目标是（）。", "options": ["A. 转换职业角色", "B. 发现自我特点", "C. 扩展职业视野", "D. 确定兴趣职业"], "answer": ["A"], "set": 2}, {"id": 297, "type": "single", "question": "自己不在意的不经意动作、下意识行为，但他人对此较为了解，这是属于乔韩视窗中的（）窗口。", "options": ["A. 隐藏我", "B. 潜能我", "C. 公开我", "D. 盲目我"], "answer": ["D"], "set": 2}, {"id": 298, "type": "multi", "question": "只有投入团体之中，才能够更好地表达自我和获得必要的帮助。投入团体主要包括的含义有（）。", "options": ["A. 个人克服自我障碍，积极参与到团体当中", "B. 以自我问题为重点，免受他人问题的干扰", "C. 独立解决心理问题，自立自强", "D. 遵守团体规则，适当约束自我"], "answer": ["A", "D"], "set": 2}, {"id": 299, "type": "truefalse", "question": "观察他人对自己的反应并不有利于我们了解自己。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 300, "type": "truefalse", "question": "在学习、专业、人际关系、情感、健康、休闲、自我成长、社会工作和兼职等方面都应该有一个具体的目标，这样才能科学地分配好精力，以良好的精神面貌和心态过好大学生活。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 301, "type": "truefalse", "question": "适应能力是个体生存和发展的必备能力，是人一生中随时都要面临的任务，也是人应当具备的一种基本素质。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 302, "type": "single", "question": "马斯洛在著作（）中提出了需要层次理论。", "options": ["A. 《人类动机的理论》", "B. 《人类需要的理论》", "C. 《需要层次理论》", "D. 《自我实现理论》"], "answer": ["A"], "set": 2}, {"id": 303, "type": "single", "question": "（）第一个对遗忘现象做了长期系统的研究，总结了遗忘的规律。", "options": ["A. 皮亚杰", "B. 班杜拉", "C. 斯金纳", "D. 艾宾浩斯"], "answer": ["D"], "set": 2}, {"id": 304, "type": "single", "question": "古人云:君子必慎交友。只有慎交友，才能交好友。这说明我们在人际交往中应该遵循（）。", "options": ["A. 相容原则", "B. 慎交原则", "C. 尊重原则", "D. 平等原则"], "answer": ["B"], "set": 2}, {"id": 305, "type": "single", "question": "无规律的响声、刺耳的噪音、嘈杂的人声等等，都会使人感到烦躁，难以集中注意力。这是（）对于注意力的影响。", "options": ["A. 环境因素", "B. 个体生理状况", "C. 个体情绪状况", "D. 个体心理状况"], "answer": ["A"], "set": 2}, {"id": 306, "type": "truefalse", "question": "人们一般认为工人豪爽，农民质朴，军人雷厉风行，知识分子文质彬彬，商人较为精明等等印象，这是角色固着。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 307, "type": "truefalse", "question": "在其他条件相同的情况下，有意识记的效果比无意识记要好得多。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 308, "type": "truefalse", "question": "漂亮的异性讨人喜欢，容易给人好感并产生爱的萌动，这是爱的自主性在起作用。 [单选题] *直觉性", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 309, "type": "truefalse", "question": "心理健康与否，与学习成绩没有关联。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 310, "type": "single", "question": "人类历史上最早记载的以心理学这一术语发表的书是（）。", "options": ["A. 《人性的提高，这就是心理学》", "B. 《一颗找回自我的心》", "C. 《心理学百科全书》", "D. 《职业名称词典》"], "answer": ["A"], "set": 2}, {"id": 311, "type": "single", "question": "大一新生处于大学生心理发展的（）。", "options": ["A. 试探期", "B. 成熟期", "C. 适应期", "D. 发展期"], "answer": ["C"], "set": 2}, {"id": 312, "type": "single", "question": "调查表明，（）的毕业生在择业中会出现明显的焦虑心理。", "options": ["A. 0.2", "B. 0.25", "C. 0.3", "D. 0.35"], "answer": ["A"], "set": 2}, {"id": 313, "type": "multi", "question": "积极悦纳自我要从（）等方面进行努力。", "options": ["A. 忽略自己的短处", "B. 肯定自己的长处", "C. 善待自己的短处", "D. 正确对待挫折"], "answer": ["B", "C", "D"], "set": 2}, {"id": 314, "type": "multi", "question": "适应一般要经历（）等环节。", "options": ["A. 环境与自我评估", "B. 态度改变", "C. 行为改变", "D. 行为选择"], "answer": ["A", "B", "D"], "set": 2}, {"id": 315, "type": "multi", "question": "大学生自我认识发展的矛盾性表现在许多方面，最主要的是（）。", "options": ["A. “主观我”与“客观我”之间的矛盾", "B. “理想我”与“现实我”之间的矛盾", "C. 成熟性与幼稚性之间的矛盾", "D. 独立性与依附性之间的矛盾"], "answer": ["A", "B", "D"], "set": 2}, {"id": 316, "type": "truefalse", "question": "自我意识发展的模式不是直线式前进的，而是螺旋式上升的。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 317, "type": "truefalse", "question": "心理咨询几乎直接服务于人类生活的各个方面。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 318, "type": "single", "question": "以下不属于导致大学生考试焦虑的原因是（）。", "options": ["A. 知识经验及能力欠缺", "B. 负性认知评价", "C. 应试技能弱", "D. 有较高的自尊水平"], "answer": ["D"], "set": 2}, {"id": 319, "type": "single", "question": "班级与班级之间、系与系之间、学院与学院之间的关系属于大学生人际关系中的（）的关系。", "options": ["A. 个体与个体之间", "B. 个体与社会之间", "C. 个体与群体之间", "D. 群体与群体之间"], "answer": ["D"], "set": 2}, {"id": 320, "type": "single", "question": "“物以类聚，人以群分”，这指的是影响人际交往的（）因素。", "options": ["A. 态度、兴趣或爱好", "B. 空间距离", "C. 仪表吸引", "D. 互补需要"], "answer": ["A"], "set": 2}, {"id": 321, "type": "single", "question": "把要记忆的材料变成韵律化的歌谣口诀，这是（）。", "options": ["A. 谐音记忆法", "B. 联想记忆法", "C. 歌诀记忆法", "D. 简约记忆法"], "answer": ["C"], "set": 2}, {"id": 322, "type": "single", "question": "在大学阶段出现诸如爱慕异性、渴望与异性相处，有时会有意无意地想到性的问题，甚至产生性幻想、性梦等各种性心理活动，而认为自己是不道德的、罪恶的。这是大学生的（）带来的心理困扰。", "options": ["A. 性生理成熟", "B. 性意识", "C. 性压抑", "D. 性行为"], "answer": ["B"], "set": 2}, {"id": 323, "type": "single", "question": "拉扎勒斯等人的研究表明，（）比智力更能促进学生努力学习。", "options": ["A. 需要", "B. 兴趣", "C. 信念", "D. 理想"], "answer": ["B"], "set": 2}, {"id": 324, "type": "single", "question": "自然主义即泛性论的爱情观的代表不包括（）。", "options": ["A. 斯宾诺莎", "B. 休谟", "C. “杯水主义”", "D. 柏拉图式的爱"], "answer": ["D"], "set": 2}, {"id": 325, "type": "single", "question": "奥地利泰尔其尔教授在对数百名高中和大学生的考试成绩进行研究后指出，人的智力是以（）天为波动周期的。", "options": ["A. 28", "B. 30", "C. 33", "D. 35"], "answer": ["C"], "set": 2}, {"id": 326, "type": "truefalse", "question": "遗忘的进程是不规律的:识记结束后，遗忘一开始是缓慢的，随着时间的进展，遗忘逐渐加快。 [单选题] * 先快后慢", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 327, "type": "truefalse", "question": "出现对异性的向往，异性双方产生相互接近的渴望，这是性意识萌发的标志。 [单选题] *性意识觉醒", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 328, "type": "truefalse", "question": "口唇期发生在2-3岁之间，主要通过吃奶和吸吮等口唇动作来获得满足的快感。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 329, "type": "single", "question": "一名大学生对于母亲依恋的需要受到压抑时，他可能会采取与比自己年长的女性谈恋爱的方式来满足这种需要。这是（）的观点。", "options": ["A. 行为主义心理学", "B. 精神分析心理学", "C. 人本主义心理学", "D. 认知心理学"], "answer": ["B"], "set": 2}, {"id": 330, "type": "single", "question": "心理健康的状态不是固定不变的，而是一个动态发展的过程。心理健康的水平会随着个人的成长、经验的积累、环境的改变以及自我保健意识的发展而发展变化。这是心理健康状态的（）。", "options": ["A. 动态性", "B. 可逆性", "C. 连续性", "D. 相对性"], "answer": ["A"], "set": 2}, {"id": 331, "type": "single", "question": "产生心理活动的物质基础是（）。", "options": ["A. 实践活动", "B. 心脏", "C. 客观现实", "D. 大脑v"], "answer": ["D"], "set": 2}, {"id": 332, "type": "single", "question": "“我很孤独”，这个自我认知属于（）。", "options": ["A. 生理自我", "B. 社会自我", "C. 心理自我", "D. 现实自我"], "answer": ["C"], "set": 2}, {"id": 333, "type": "single", "question": "我国第一部医学经典著作（）中阐述了各种情绪与人体健康的关系，人的起居、心态应适应自然界及四季的变化，以及人们的心理应能动地适应社会环境的变化等心理卫生思想。", "options": ["A. 《难经》", "B. 《伤寒杂病论》", "C. 《黄帝·内经》", "D. 《本草纲目》"], "answer": ["C"], "set": 2}, {"id": 334, "type": "multi", "question": "在就业准备中，大学生要做好能力方面的准备，掌握（）等能力。", "options": ["A. 语言文字表达能力", "B. 交际能力", "C. 辩证思维能力", "D. 组织管理能力"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 335, "type": "multi", "question": "心理活动过程包括（）方面，它们从不同的角度能动地反映着客观事物及其相互之间的关系。", "options": ["A. 认知过程", "B. 体验过程", "C. 情绪情感过程", "D. 意志过程"], "answer": ["A", "C", "D"], "set": 2}, {"id": 336, "type": "multi", "question": "美国著名职业指导专家金斯伯格将人的职业选择心理的发展分为（）。", "options": ["A. 兴趣期", "B. 幻想期", "C. 尝试期", "D. 现实期"], "answer": ["B", "C", "D"], "set": 2}, {"id": 337, "type": "multi", "question": "个性心理特征是人们在长期的认知、情绪和意志活动中形成的稳固而经常出现的心理特性，主要包括（）。", "options": ["A. 能力", "B. 气质", "C. 性格", "D. 态度"], "answer": ["A", "B", "C"], "set": 2}, {"id": 338, "type": "truefalse", "question": "对于内心一些涉及不道德的念头也不必顾虑，来访者可以大胆地表达出来，咨询师会表示充分的理解。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 339, "type": "truefalse", "question": "自我体验包括自主、自立、自制、自强、自律、自我设计和自我教育等。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 340, "type": "truefalse", "question": "个体接受社会文化、学习社会角色的重要时期，也是个体的自我意识迅速发展并趋向成熟的关键期。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 341, "type": "single", "question": "在大学同学中，以情感交往和生活交往为主的是（）。", "options": ["A. 班级同学关系", "B. 宿舍关系", "C. 老乡关系", "D. 社团关系"], "answer": ["B"], "set": 2}, {"id": 342, "type": "single", "question": "“以己之心，度人之腹”，指的是（）。", "options": ["A. 角色固着", "B. 光环效应", "C. 近因效应", "D. 投射效应"], "answer": ["D"], "set": 2}, {"id": 343, "type": "single", "question": "布鲁纳强调学生的（），认为学习是积极主动的过程。", "options": ["A. 能动学习", "B. 接受学习", "C. 发现学习", "D. 主动学习"], "answer": ["C"], "set": 2}, {"id": 344, "type": "single", "question": "女性能展现自己的阴柔之美，男性能展现自己的阳刚之气，对自己的性别角色有相应的自尊感和自豪感，这是（）。", "options": ["A. 与同龄人的性心理发展水平相当", "B. 有较强的性适应能力", "C. 能有正常的欲望", "D. 能正确认识和接纳自己的性别"], "answer": ["D"], "set": 2}, {"id": 345, "type": "single", "question": "看到他人有一块漂亮的手表，就希望那块手表丢失或者被毁坏，或者当面嫌弃那块手表很丑，这是（）心理。", "options": ["A. 厌恶", "B. 憎恨", "C. 羡慕", "D. 嫉妒"], "answer": ["D"], "set": 2}, {"id": 346, "type": "multi", "question": "以下属于马斯洛提出的理论有（）。", "options": ["A. 需要层次理论", "B. 自我实现理论", "C. 元动机理论", "D. 高峰体验理论"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 347, "type": "multi", "question": "系统学习的层次包括（）。", "options": ["A. 树状结构", "B. 网状联系", "C. 由点到面", "D. 引伸扩展"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 348, "type": "truefalse", "question": "适度的应试焦虑对大学生的考前复习和应试具有积极的作用。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 349, "type": "truefalse", "question": "学生干部只注重其干部身份，而忽略他作为学生的其他方面，这是刻板印象。 [单选题] * 角色固着", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 350, "type": "truefalse", "question": "有的同学谈恋爱的目的是为了互相帮助、互相鼓励，共同进步和发展。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 351, "type": "single", "question": "用于评价个人整体人格结构的量表是（）。", "options": ["A. 艾森克人格调查表", "B. 卡特尔人格调查表", "C. 症状自评量表", "D. 孤独症行为评定量表"], "answer": ["B"], "set": 2}, {"id": 352, "type": "single", "question": "用于确定治疗方案的量表是（）。", "options": ["A. 症状自评量表", "B. 卡特尔人格调查表", "C. 艾森克人格调查表", "D. 孤独症行为评定量表"], "answer": ["C"], "set": 2}, {"id": 353, "type": "single", "question": "“情人眼里出西施”指的是（）。", "options": ["A. 意志对认知的影响", "B. 认知对意志的影响", "C. 认知对情绪的影响", "D. 情绪对认知的影响"], "answer": ["D"], "set": 2}, {"id": 354, "type": "truefalse", "question": "心理学是研究人的心理现象及其规律的科学。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 355, "type": "truefalse", "question": "大学生管理时间的能力和身心健康没有关系。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 356, "type": "truefalse", "question": "适应能力的高低，不会影响个体发展水平的高低。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 357, "type": "truefalse", "question": "传统健康观不只重视躯体健康，也重视心理卫生的保健。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 358, "type": "single", "question": "（）不把爱情庸俗化，也不把爱情神圣化。", "options": ["A. 超现实主义的爱情观", "B. 泛性论的爱情观", "C. 性爱和情爱结合的爱情观", "D. 超理性主义的爱情观"], "answer": ["C"], "set": 2}, {"id": 359, "type": "single", "question": "据第45次《中国互联网发展状况统计报告》发布显示，截至2020年3月，中国网民规模达（）亿，手机上网占据绝对优势，其中学生网民占比最大。", "options": ["A. 8.94", "B. 9.04", "C. 9.14", "D. 9.24"], "answer": ["B"], "set": 2}, {"id": 360, "type": "single", "question": "很多追星族坚定捍卫自己喜爱的明星的一切荣誉，这是（）的表现。", "options": ["A. 角色固着", "B. 光环效应", "C. 投射效应", "D. 近因效应"], "answer": ["B"], "set": 2}, {"id": 361, "type": "single", "question": "有的学生在没有外界干扰的情况下，主观上想认真学习却无法集中注意力，常常分心走神。这是（）。", "options": ["A. 注意力减弱", "B. 注意力分散", "C. 注意力转移困难", "D. 注意力范围狭小"], "answer": ["A"], "set": 2}, {"id": 362, "type": "single", "question": "学者曾对大学生初次发生性关系的原因进行了调查，调查结果发现，女生出于爱与男友发生性关系的占（）。", "options": ["A. 36%", "B. 40%", "C. 44%", "D. 48%"], "answer": ["C"], "set": 2}, {"id": 363, "type": "single", "question": "注意力不集中、记忆力下降、情绪焦虑紧张、抑郁、无生活乐趣等，这些是（）的表现。", "options": ["A. 重度疲劳", "B. 心理疲劳", "C. 生理疲劳", "D. 中度疲劳"], "answer": ["B"], "set": 2}, {"id": 364, "type": "single", "question": "在某些天或某些时刻，个体精神愉快、思维清晰，学习状态特别好;而在某些时期或某些时刻却精神不振、注意力分散，学习效率较低，因而我们应该根据（）来选择学习方法。", "options": ["A. 个性特点", "B. 思维状态", "C. 学科特色", "D. 心理健康水平"], "answer": ["B"], "set": 2}, {"id": 365, "type": "single", "question": "“强扭的瓜不甜”指的是爱情的（）特点。", "options": ["A. 对等性", "B. 直觉性", "C. 自主性", "D. 能动性"], "answer": ["A"], "set": 2}, {"id": 366, "type": "multi", "question": "大学生网络人际关系的特点包括（）。", "options": ["A. 随意性", "B. 互助性", "C. 宣泄性", "D. 多维性"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 367, "type": "multi", "question": "美国心理学家斯滕伯格提出的爱情三角理论，认为构成爱的要素有（）。", "options": ["A. 排他", "B. 激情", "C. 亲密", "D. 承诺"], "answer": ["B", "C", "D"], "set": 2}, {"id": 368, "type": "truefalse", "question": "大学生的性生理和性心理都已经完全成熟。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 369, "type": "truefalse", "question": "动物和人类的性行为不仅有导致生育目的的性交，也有出于娱情、结偶、示爱、探索、解闷等需要的非生育目的的方面。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 370, "type": "truefalse", "question": "建立良好的人际关系离不开互助互利。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 371, "type": "single", "question": "“一夜情”是只有（）的爱。", "options": ["A. 承诺", "B. 浪漫", "C. 激情", "D. 亲密"], "answer": ["C"], "set": 2}, {"id": 372, "type": "single", "question": "在（），性的能量重新涌现出来，男女均从与异性的接触中寻求乐趣。", "options": ["A. 生殖器期", "B. 肛门期", "C. 生殖期", "D. 潜伏期"], "answer": ["C"], "set": 2}, {"id": 373, "type": "single", "question": "在形容最重要的爱情关系时，个体谈论最多的是对方的要求太多及不可理喻和对亲密关系的恐惧。在与恋人相处时，很少感到亲密与幸福。这是依恋风格类型中的（）。", "options": ["A. 回避型", "B. 焦虑型", "C. 恐惧型", "D. 抗拒型"], "answer": ["A"], "set": 2}, {"id": 374, "type": "single", "question": "儿童将兴趣转向外部，发展各种为应付环境所需要的知识和技能。这是性心理发展五阶段中的（）。 [单选题] * 佛洛依德", "options": ["A. 发展期", "B. 探索期", "C. 潜伏期", "D. 生殖期"], "answer": ["C"], "set": 2}, {"id": 375, "type": "single", "question": "据研究，大脑可以储存（）比特的信息。", "options": ["A. 1005", "B. 1015", "C. 1115", "D. 1215"], "answer": ["B"], "set": 2}, {"id": 376, "type": "multi", "question": "人际交往的心理效应包括（）等。", "options": ["A. 首因效应", "B. 晕轮效应", "C. 刻板效应", "D. 投射效应"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 377, "type": "truefalse", "question": "青春发育期是机体各个器官和系统生长发育的关键时刻，也是培养人的性格与心理素质以及形成世界观的重要时期。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 378, "type": "single", "question": "金斯伯格提出的职业生涯发展的尝试期处于（）。", "options": ["A. 10-17岁", "B. 11-17岁", "C. 12-17岁", "D. 13-17岁"], "answer": ["B"], "set": 2}, {"id": 379, "type": "single", "question": "进入就业市场或专业训练，更重视现实，并力图实现自我观念，将一般性的选择转变为特定的选择，这是处于生涯发展理论的（）。", "options": ["A. 过渡期", "B. 建立期", "C. 明确期", "D. 转变期"], "answer": ["A"], "set": 2}, {"id": 380, "type": "single", "question": "在管理学中，（）是常常被用于制定集团发展战略和分析竞争对手情况的一种方法。", "options": ["A. 5W1H法", "B. 十二聪明法", "C. SWOT分析法", "D. 头脑风暴法"], "answer": ["C"], "set": 2}, {"id": 381, "type": "single", "question": "大学生健康心理的培养必须从大学生生活的校园环境、社会背景以及相互之间的关系出发，结合大学生的实际，才行之有效。这是大学生心理健康教育的（）原则。", "options": ["A. 系统性", "B. 客观性", "C. 发展性", "D. 理论联系实际"], "answer": ["B"], "set": 2}, {"id": 382, "type": "single", "question": "研究不正常人的是（）。", "options": ["A. 人本主义心理学", "B. 认知心理学", "C. 精神分析心理学", "D. 行为主义心理学"], "answer": ["C"], "set": 2}, {"id": 383, "type": "truefalse", "question": "心理咨询师无法依靠经验的方法来确定个人是否有问题。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 384, "type": "truefalse", "question": "大学四年在学习、专业、人际关系、情感、健康、休闲、自我成长、社会工作和兼职等方面都应该有一个具体的目标，这样才能科学地分配好精力，以良好的精神面貌和心态过好大学生活。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 385, "type": "truefalse", "question": "面对竞争激烈的就业市场，大学生要想顺利就业，就应该增强就业准备意识。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 386, "type": "truefalse", "question": "为了更容易就业，大学生在确定职业方向、选择职业时，应该只针对热门行业、热门职业进行寻找。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 387, "type": "single", "question": "“种瓜得瓜，种豆得豆”描述的是（）的影响。", "options": ["A. 自身生活方式", "B. 个性心理特征", "C. 社会环境", "D. 遗传基因"], "answer": ["D"], "set": 2}, {"id": 388, "type": "single", "question": "让来访者将压抑于潜意识的欲望再现出来，使潜意识的“症结”意识化，帮助其认清自我防御的本质，明确自己与他人的关系。这是（）。", "options": ["A. 自我调节法", "B. 自我实现法", "C. 自由联想法", "D. 自我暗示法"], "answer": ["C"], "set": 2}, {"id": 389, "type": "multi", "question": "对于自负这一自我意识问题，自我调适的建议包括（）。", "options": ["A. 了解自负背后的意义", "B. 对比反思法", "C. 接受批评法", "D. 设问法"], "answer": ["A", "B", "C"], "set": 2}, {"id": 390, "type": "truefalse", "question": "生涯发展理论的建立阶段是15~24岁。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 391, "type": "truefalse", "question": "对自己身体的高矮胖瘦、身体的健康状况等意识属于社会自我。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 392, "type": "single", "question": "交互作用心理学认为只有建立（）的关系才是最健康的心理状态。", "options": ["A. “我行，你不行”", "B. “我不行，你行”", "C. “我不行，你也不行”", "D. “我行，你也行”"], "answer": ["D"], "set": 2}, {"id": 393, "type": "single", "question": "在人格发展八阶段理论的儿童早期，个体需要发展的品质是（）。", "options": ["A. 希望", "B. 意志力", "C. 目的", "D. 能力"], "answer": ["B"], "set": 2}, {"id": 394, "type": "single", "question": "在人反映客观现实的心理活动中，总有（）状态相伴随。", "options": ["A. 注意", "B. 思维", "C. 想象", "D. 记忆"], "answer": ["A"], "set": 2}, {"id": 395, "type": "truefalse", "question": "客观认识自我是培养健全的自我意识的基础。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 396, "type": "truefalse", "question": "1962年为“国际心理健康年”，呼吁全人类重视心理卫生。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 397, "type": "single", "question": "由于多种因素，大学生在择业上不可能一蹴而就，需要多次尝试，没有必要为一次择业的失败而灰心丧气，这是大学生要树立（）。", "options": ["A. 平等择业观念", "B. 高尚择业观念", "C. 主动择业观念", "D. 多次择业观念"], "answer": ["D"], "set": 2}, {"id": 398, "type": "single", "question": "一个临近毕业的大学生既不想找工作也不想考研，这是（）。", "options": ["A. 心理冲突", "B. 双避冲突", "C. 趋避冲突", "D. 双趋冲突"], "answer": ["B"], "set": 2}, {"id": 399, "type": "truefalse", "question": "心理健康的定义是指在身体、智能以及情感上与他人的心理健康不相矛盾的范围内，将个人心境发展成最佳的状态。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 400, "type": "truefalse", "question": "意志是自觉确定目标，并根据目标支配和调节行为，克服困难实现预定目标的心理过程，是人和动物都有的心理现象。 [单选题] *人类特有", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 401, "type": "single", "question": "以下不属于学习的认知理论的是（）。", "options": ["A. 格式塔的顿悟说", "B. 托尔曼的认知论", "C. 班杜拉的学习理论", "D. 布鲁纳的学习理论"], "answer": ["C"], "set": 2}, {"id": 402, "type": "single", "question": "对于性格外向的同学，他们思维敏捷，但坚持性较差，适合用“交替学习法”;而对于内向性的同学，他们沉着稳重，学习认真持久，但思路不宽，变通性较差，应培养发散性思维。这是根据（）来选择学习方法。", "options": ["A. 个性特点", "B. 思维状态", "C. 学科特色", "D. 心理健康水平"], "answer": ["A"], "set": 2}, {"id": 403, "type": "single", "question": "（），是社会学上的词汇，它是社会按照人们的性别赋予人们不同的社会行为模式。", "options": ["A. 性别", "B. 性别行为", "C. 性别角色", "D. 性别模式"], "answer": ["C"], "set": 2}, {"id": 404, "type": "single", "question": "晚睡晚起、早睡早起的生活方式在同一宿舍和谐共存;拥有谨慎细心与粗心大意的特质的人能和谐共处等，这说明我们在人际交往中应该遵循（）。", "options": ["A. 相容原则", "B. 平等原则", "C. 互利原则", "D. 尊重原则"], "answer": ["A"], "set": 2}, {"id": 405, "type": "multi", "question": "大学生的人际关系按照交往的范围可以分为（）。", "options": ["A. 个体与家庭之间", "B. 个体与群体之间", "C. 群体与群体之间", "D. 个体与个体之间"], "answer": ["B", "C", "D"], "set": 2}, {"id": 406, "type": "multi", "question": "婚前性行为的不良影响包括（）。", "options": ["A. 影响爱情的健康发展", "B. 影响社会发展", "C. 影响身体健康", "D. 影响心理健康"], "answer": ["A", "C", "D"], "set": 2}, {"id": 407, "type": "multi", "question": "团体关系按建立的动因可以划分为（）等。", "options": ["A. 学业型", "B. 同乡型", "C. 兴趣型", "D. 情缘型"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 408, "type": "truefalse", "question": "情感的认同是人际关系的建立基础。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 409, "type": "truefalse", "question": "刻板印象是指个人言行举止过分拘泥于特定角色的心理倾向。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 410, "type": "truefalse", "question": "性的本质体现是自然属性。 [单选题] *社会属性", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 411, "type": "truefalse", "question": "按照斯滕伯格的理论，只有（）一种元素，仅能称为喜欢，所爱的对象与珍爱的物件和宠物无异，可能有兴致欣赏，却无意忠诚。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 412, "type": "multi", "question": "知识是人类对客观事物的属性、关系的反映，是人类社会经验的主要组成部分，包括（）。", "options": ["A. 自然地理知识", "B. 自然科学知识", "C. 社会科学知识", "D. 社会历史知识"], "answer": ["B", "C"], "set": 2}, {"id": 413, "type": "truefalse", "question": "越是学习紧张的时候，我们越要抽出更多的时间来学习。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 414, "type": "truefalse", "question": "超理性主义的爱情观主张把性欲完全排斥在爱情之外;认为性欲是低级的兽欲，爱情是一种丝毫不带兽性的高尚精神活动。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 415, "type": "truefalse", "question": "满足自己在温饱方面的需求是安全需求。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 416, "type": "truefalse", "question": "学习骑自行车，这是属于行为准则的学习。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 417, "type": "multi", "question": "心理学是研究人的心理现象及发生发展规律的科学，它的主要研究内容包括（），既相互独立又相互联系。", "options": ["A. 心理动力", "B. 心理过程", "C. 心理状态", "D. 心理特征", "A. 试探期", "B. 能力期", "C. 过渡期", "D. 试验并稍作承诺期", "A. 自我认识", "B. 自我体验", "C. 自我管理", "D. 自我调控"], "answer": ["A", "B", "C", "D", "A", "C", "D", "A", "B", "D"], "set": 2}, {"id": 418, "type": "single", "question": "一般来说,一个人对社会的贡献越大，他的( )。", "options": ["A. 社会地位就越高", "B. 个人价值就越高", "C. 社会价值就越高", "D. 自我完善就越高"], "answer": ["C"], "set": 2}, {"id": 419, "type": "single", "question": "当代中国大学生的历史使命是:（ ）", "options": ["A. 建设中国特色社会主义、实现中华民族伟大复兴。", "B. 建设中国特色社会主义", "C. 实现中华民族伟大复兴", "D. 建立和完善社会主义市场经济"], "answer": ["A"], "set": 2}, {"id": 420, "type": "single", "question": "大学生思考人生问题，不应该（）。", "options": ["A. 正确认识和处理个人与社会的关系", "B. 把小我和大我更好地统一起来", "C. 把个人利益和家庭利益摆在首位", "D. 把自己的人生追求同社会的发展进步紧密结合起来"], "answer": ["C"], "set": 2}, {"id": 421, "type": "single", "question": "近朱者赤，近墨者黑。如果与道德低劣、见利忘义、损公肥私、不重情义的人交友，难免会给自己的人生修养、人格发展和理想追求带来损失，使自己沾染恶习，害人害己;而与品行高洁、知书达理、思想健康的人交友，自己就会获益匪浅。这说明的是 ( )。", "options": ["A. 人生必须交友", "B. 现代社会可以不交朋友", "C. 现代社会人的交往范围越来越广泛", "D. 交友一定要慎重，要选择好的朋友"], "answer": ["D"], "set": 2}, {"id": 422, "type": "single", "question": "关于“人生需认真”，表述正确的是（）。", "options": ["A. 对民族、国家、社会负责", "B. 得过且过", "C. 放纵生活", "D. 游戏人生"], "answer": ["A"], "set": 2}, {"id": 423, "type": "single", "question": "以下关于享乐主义错误的是（）", "options": ["A. 享乐主义是一种不把享乐作为人生目的的思想观念", "B. 享乐主义主张人生就在于满足感官的需求与快乐", "C. 享乐主义把感官的享乐变成了人生唯一的追求", "D. 享乐主义是对人的需要的一种错误的理解"], "answer": ["A"], "set": 2}, {"id": 424, "type": "single", "question": "社会主义道德建设的核心（ ）第四单元", "options": ["A. 爱国主义", "B. 集体主义", "C. 为人民服务", "D. 社会主义荣辱观"], "answer": ["C"], "set": 2}, {"id": 425, "type": "single", "question": "关于“人生需认真”，表述有误的是（）。", "options": ["A. 努力追求物质财富", "B. 严肃思考人的生命应有的意义", "C. 明确生活目标和肩负的责任", "D. 既要清醒地看待生活，又要积极认真地面对生"], "answer": ["A"], "set": 2}, {"id": 426, "type": "single", "question": "以下关于“人生当务实”表述正确的是（）。", "options": ["A. 空谈理想", "B. 眼高手低", "C. 浅尝辄止", "D. 要从人生的实际出发，以科学的态度看待人生，以务实的精神创造人生"], "answer": ["D"], "set": 2}, {"id": 427, "type": "single", "question": "对于大学生来说，以下表述不正确的是（）。", "options": ["A. 大学生应树立正确的人生观", "B. 大学生只需做好自己的学业", "C. 大学生应明确人生目的", "D. 大学生应 端正人生态度、认识人生价值"], "answer": ["B"], "set": 2}, {"id": 428, "type": "multi", "question": "树立正确的生死观，大学生应做到（）。", "options": ["A. 及时行乐", "B. 珍惜韶华", "C. 在服务人民、投身民族复兴伟大事业中开发出生命所蕴藏的巨大潜能", "D. 努力给有限的个体生命赋予更有价值的意义", "E. 谨小慎微"], "answer": ["B", "C", "D"], "set": 2}, {"id": 429, "type": "single", "question": "个体的注意力常常被其他事物所干扰，不能有效地把注意力集中到当前事物上。这是（）。", "options": ["A. 注意力减弱", "B. 注意力分散", "C. 注意力转移困难", "D. 注意力范围狭小"], "answer": ["B"], "set": 2}, {"id": 430, "type": "multi", "question": "学习的联结理论的代表人物有（）。", "options": ["A. 托尔曼", "B. 桑代克", "C. 华生", "D. 斯金纳"], "answer": ["B", "C", "D"], "set": 2}, {"id": 431, "type": "multi", "question": "大学生的性行为主要是（）。", "options": ["A. 婚后性行为", "B. 自慰性行为", "C. 边缘性行为", "D. 婚前性行为"], "answer": ["B", "C", "D"], "set": 2}, {"id": 432, "type": "truefalse", "question": "按照斯滕伯格的爱情三角理论，不同的爱情可以表现为不同形状、不同大小的三角形。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 433, "type": "single", "question": "在人格发展八阶段理论的青春期中，个体需要发展的品质是（）。", "options": ["A. 忠诚", "B. 爱", "C. 关心", "D. 智慧"], "answer": ["A"], "set": 2}, {"id": 434, "type": "single", "question": "适应的根本目的是达到或恢复主客体之间的平衡，这是用（）对心理适应本质所作的一种解释。", "options": ["A. 完成论", "B. 适应论", "C. 平衡论", "D. 恢复论"], "answer": ["C"], "set": 2}, {"id": 435, "type": "single", "question": "“智力正常”这个评价要素属于（）基本维度。", "options": ["A. 情绪稳定", "B. 内外协调适应", "C. 角色与功能协调", "D. 基本心理能力"], "answer": ["C"], "set": 2}, {"id": 436, "type": "single", "question": "适应，源于（）概念，指的是生物在生存竞争中适应环境条件而形成一定特征和性状的现象。", "options": ["A. 生物学", "B. 生理学", "C. 自然学", "D. 生态学"], "answer": ["A"], "set": 2}, {"id": 437, "type": "single", "question": "调整、稳固并求上进，这是生涯发展理论中（）的发展任务。", "options": ["A. 上升阶段", "B. 维持阶段", "C. 建立阶段", "D. 稳定阶段"], "answer": ["C"], "set": 2}, {"id": 438, "type": "multi", "question": "大学生自我意识发展过程中存在的不适应现象包括（）。", "options": ["A. 自我中心", "B. 自卑", "C. 自负", "D. 懒惰"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 439, "type": "truefalse", "question": "自我意识是人的意识发展的高级形式，是人类特有的心理活动。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 440, "type": "single", "question": "马克思主义认为，人生观的形成是（）。", "options": ["A. 人生的自我实现", "B. 上帝或神的启示", "C. 人性的自我完成", "D. 人们所处一定历史条件和社会关系的产物"], "answer": ["D"], "set": 2}, {"id": 441, "type": "single", "question": "积极进取的人生态度不包括（）。", "options": ["A. 人生须认真", "B. 人生当务实", "C. 人生得意须尽欢", "D. 人生应乐观"], "answer": ["C"], "set": 2}, {"id": 442, "type": "single", "question": "评价人生价值的根本尺度,是看一个人的实践活动是否符合（）。", "options": ["A. 社会经济的发展", "B. 法制建设的基本要求", "C. 精神文明的基本要去", "D. 社会发展的客观规律，是否促进了历史的进步"], "answer": ["D"], "set": 2}, {"id": 443, "type": "single", "question": "人生目的是人在人生实践中关于自身行为的根本指向和人生追求，它所认识和回答的根本问题是（ ）", "options": ["A. 人为什么活着", "B. 人如何对待生活", "C. 怎样对待人生境遇", "D. 怎样选择人生道路"], "answer": ["A"], "set": 2}, {"id": 444, "type": "single", "question": "以下关于“人生应乐观”表述错误的是（）。", "options": ["A. 乐观豁达", "B. 热爱生活", "C. 对人生充满自信", "D. 畏难退缩"], "answer": ["D"], "set": 2}, {"id": 445, "type": "single", "question": "大学生要把（）作为人生的最高追求。", "options": ["A. 事业有成", "B. 家庭幸福", "C. 为国家和人民事业无私奉献", "D. 恪守法制"], "answer": ["C"], "set": 2}, {"id": 446, "type": "single", "question": "列宁说:“没有人的感情，就从来没有也不可能有人对于真理的追求。”对于完善人的品质来说，这主要强调的是( ) 。", "options": ["A. 省察克治的重要性", "B. 慎独自律的重要性", "C. 陶冶情操的重要性", "D. 学思明理的重要性"], "answer": ["C"], "set": 2}, {"id": 447, "type": "single", "question": "科学的人生观指（ ）。", "options": ["A. 以为人民服务为核心", "B. 以经济利益为核心", "C. 以保护环境为核心", "D. 以拜金主义为核心"], "answer": ["A"], "set": 2}, {"id": 448, "type": "single", "question": "下列各项中，（ ）不是人生观的体现。", "options": ["A. 人生目的", "B. 人生环境", "C. 人生态度", "D. 人生价值"], "answer": ["B"], "set": 2}, {"id": 449, "type": "multi", "question": "树立正确的得失观，要做到（）。", "options": ["A. 不要拘泥于个人利益的得失", "B. 不要满足一时的得", "C. 不要惧怕一时的失", "D. 不要追求个人荣誉", "E. 不要逞一时的英雄"], "answer": ["A", "B", "C"], "set": 2}, {"id": 450, "type": "multi", "question": "世界观主要包括（ ）。", "options": ["A. 社会历史观", "B. 进化观", "C. 自然观", "D. 人生观", "E. 文化观"], "answer": ["A", "C", "D"], "set": 2}, {"id": 451, "type": "multi", "question": "在人生价值的评价中应坚持（ ）统一。", "options": ["A. 能力有大小与贡献须尽力", "B. 物质贡献与精神贡献", "C. 完善自我与贡献社会", "D. 目的与手段", "E. 索取与享受"], "answer": ["A", "B", "C"], "set": 2}, {"id": 452, "type": "multi", "question": "关于极端个人主义人生观的分析，表述正确的有（）", "options": ["A. 它是剥削阶级的人生观，反映的都是狭隘的剥削阶级利益", "B. 它忽视或否认社会性是人的存在和活动的本质属性", "C. 它讨论人生问题的出发点和落脚点都是一己之私利", "D. 它夸大了人生的某方面需要，而无视人的全面性和人生的整体需要", "E. 它是一种值得提倡的人生观"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 453, "type": "multi", "question": "对人生态度形成起主要作用的心理因素有（ ）。", "options": ["A. 认知", "B. 体验", "C. 情感", "D. 意志", "E. 行为"], "answer": ["A", "C", "D"], "set": 2}, {"id": 454, "type": "truefalse", "question": "德是人才素质的基础。（ ）", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 455, "type": "truefalse", "question": "只要学好了“思想道德与法治”的基本知识，就能够提高思想道德修养素质与法律素质。（ ）", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 456, "type": "truefalse", "question": "幸福意味着人总体上生活得美好。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 457, "type": "truefalse", "question": "就掌握知识而言，掌握获取知识的本领，学会在知识海洋畅游的方法，是大学阶段的主要任务。（ ）", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 458, "type": "truefalse", "question": "人生观主要是通过人生目的、人生态度和人生理想体现出来。（ ）", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 459, "type": "single", "question": "“儿童恋慕父母中异性的一方，男孩子恋母，女孩子恋父”，这种现象出现在（）。 [单选题]", "options": ["A. 肛门期", "B. 生殖器期", "C. 潜伏期", "D. 隐藏期"], "answer": ["B"], "set": 2}, {"id": 460, "type": "single", "question": "大学生在网上可以随意自主、情绪化地选择“网络人际”环境，充分享受自我，这是网络人际关系的（）特点。", "options": ["A. 自主性", "B. 随意性", "C. 情绪性", "D. 自我性"], "answer": ["B"], "set": 2}, {"id": 461, "type": "single", "question": "不属于学习动机过强的调适方法的是（）。", "options": ["A. 端正学习动机，正确对待外部环境", "B. 正确认识自己的潜力，量力而行，循序渐进，不好高骛远", "C. 树立远大目标，淡化名利得失，克服虚荣心，培养广泛兴趣爱好，培养多种特长。", "D. 培养学习兴趣"], "answer": ["D"], "set": 2}, {"id": 462, "type": "single", "question": "一些大学生在确定职业方向、选择职业时，只寻找热门行业、热门职业，选择的人数越多，他们对那些行业、职业的渴求就越大，这是（）。", "options": ["A. 单次择业心理", "B. 过于功利心理", "C. 盲目从众心理", "D. 盲目攀比心理"], "answer": ["C"], "set": 2}, {"id": 463, "type": "single", "question": "查尔斯·霍顿·库利提出了（）。", "options": ["A. 现实我", "B. 健康我", "C. 理想我", "D. 镜中我"], "answer": ["D"], "set": 2}, {"id": 464, "type": "single", "question": "在人格发展八阶段理论的成年早期中，个体会面临的危机是（）。", "options": ["A. 勤奋对自卑", "B. 亲密对孤独", "C. 繁殖对停滞", "D. 整合对失望"], "answer": ["B"], "set": 2}, {"id": 465, "type": "single", "question": "一项关于大学生“我的长处和短处”的调查表明，大约有（）的大学生能比较客观地写下自己长处与短处。", "options": ["A. 0.7", "B. 0.75", "C. 0.8", "D. 0.85"], "answer": ["A"], "set": 2}, {"id": 466, "type": "single", "question": "（）在剑桥大学演说时说他成功的秘诀有三个:第一，决不放弃;第二，决不放弃;第三，还是决不放弃。", "options": ["A. 塞利格曼", "B. 奥威尔", "C. 霍金", "D. 丘吉尔"], "answer": ["D"], "set": 2}, {"id": 467, "type": "single", "question": "大学生逐步熟悉学校的图书馆、教学楼、心理咨询中心、食堂、商店或超市、医务室等基本设施，了解学校的校训、校风和相关纪律规定等，并接纳这些环境，这是（）。", "options": ["A. 悦纳校园设施", "B. 悦纳校园生活", "C. 悦纳校园文化", "D. 悦纳校园环境"], "answer": ["D"], "set": 2}, {"id": 468, "type": "single", "question": "世界卫生组织公布的研究报告表明，工业化发达国家有占总死亡人数比例为（）的人死于与生活习惯有关的疾病，如癌症、心血管病。", "options": ["A. 0.7", "B. 0.75", "C. 0.8", "D. 0.85"], "answer": ["B"], "set": 2}, {"id": 469, "type": "single", "question": "调查表明，（）的女生有性压抑感。", "options": ["A. 44.77%", "B. 46.77%", "C. 48.77%", "D. 50.77%"], "answer": ["C"], "set": 2}, {"id": 470, "type": "single", "question": "在（），婴儿从吮吸、吞咽、咬合发声中得到性的快感和满足。", "options": ["A. 肛门期", "B. 口唇期", "C. 生殖器期", "D. 潜伏期"], "answer": ["B"], "set": 2}, {"id": 471, "type": "single", "question": "人格发展八阶段理论的成熟期处于（）。", "options": ["A. 18-40岁", "B. 40-65岁", "C. 65岁以上", "D. 70岁以上"], "answer": ["C"], "set": 2}, {"id": 472, "type": "single", "question": "人的心理障碍来自真实自我与理想自我之间的激烈冲突。一个人应学会面对真实的自我，放下各种负担，痛痛快快地享受一下这个自我目标，在真实自我和理想自我之间做一个合理地妥协。这是（）。", "options": ["A. 自我调节法", "B. 暗示控制法", "C. 自我实现法", "D. 自由联想法"], "answer": ["C"], "set": 2}, {"id": 473, "type": "single", "question": "以下是新精神分析学派的代表人物的是（）。", "options": ["A. 荣格", "B. 弗洛伊德", "C. 华生", "D. 斯金纳"], "answer": ["A"], "set": 2}, {"id": 474, "type": "single", "question": "有的学生把自己全部生活都围绕着学习来进行，恨不得把一切娱乐、休闲时间都减免，一心一意放在学习上。他们注重学习结果，恐惧失败，久而久之，导致情绪焦虑、记忆力衰退等等症状。这是（）的表现。", "options": ["A. 自我中心", "B. 自卑", "C. 学习动机过强", "D. 学习动机不强"], "answer": ["C"], "set": 2}, {"id": 475, "type": "single", "question": "（）是决定学生学习积极性的心理动因，它对学习活动起着启动和助推作用。", "options": ["A. 学习信念", "B. 学习需要", "C. 学习动机", "D. 学习兴趣"], "answer": ["C"], "set": 2}, {"id": 476, "type": "single", "question": "即使某单位非常适合自身发展，但因某个方面比不上其他同学选择的就业单位，有些同学仍会狠心放弃，事后却后悔不已，这是（）。", "options": ["A. 单次择业心理", "B. 过于功利心理", "C. 盲目从众心理", "D. 盲目攀比心理"], "answer": ["D"], "set": 2}, {"id": 477, "type": "single", "question": "调查表明，（）的男生有性压抑感。", "options": ["A. 53.19%", "B. 55.19%", "C. 57.19%", "D. 59.19%"], "answer": ["B"], "set": 2}, {"id": 478, "type": "single", "question": "个体对于温饱的需求是（）。", "options": ["A. 生理需求", "B. 安全需求", "C. 爱和归属的需求", "D. 尊重的需求"], "answer": ["A"], "set": 2}, {"id": 479, "type": "single", "question": "“勤能补拙”指的是非智力因素的（）。", "options": ["A. 补偿作用", "B. 维持作用", "C. 调节作用", "D. 强化作用"], "answer": ["A"], "set": 2}, {"id": 480, "type": "single", "question": ".心理咨询以（）为学科基础，用于解决与个人发展、心理健康及其与人际关系相关的问题。", "options": ["A. 普通心理学", "B. 变态心理学", "C. 发展心理学", "D. 咨询心理学"], "answer": ["D"], "set": 2}, {"id": 481, "type": "single", "question": "不喜欢温习功课，可也不想因为不温习功课而导致考试不及格，这是（）。", "options": ["A. 心理冲突", "B. 趋避冲突", "C. 双趋冲突", "D. 双避冲突"], "answer": ["D"], "set": 2}, {"id": 482, "type": "single", "question": "直至19世纪中叶，因受（）发展的影响，心理学逐步从其他科学中分离出来，逐渐成为一门独立的学科。", "options": ["A. 生物科学", "B. 哲学", "C. 神学", "D. 医学"], "answer": ["A"], "set": 2}, {"id": 483, "type": "single", "question": "“自主、自立、自制、自强、自卫、自律、自励、自我设计、自我监控和自我教育”等，属于（）。", "options": ["A. 自我认识", "B. 自我体验", "C. 自我调控", "D. 自我管理"], "answer": ["C"], "set": 2}, {"id": 484, "type": "single", "question": "以自己的身体为中心，并以自己的想法和情绪来认识、投射外部世界，能分清“我”与“非我”，但分不清我与物之间的关系。这是（）。", "options": ["A. 自我中心时期", "B. 身体中心时期", "C. 客观中心时期", "D. 主观中心时期"], "answer": ["A"], "set": 2}, {"id": 485, "type": "single", "question": "对比较复杂的学习内容与操作，个体的注意力分配不够合理，有顾此失彼的现象。这是（）。", "options": ["A. 注意力减弱", "B. 注意力分散", "C. 注意力转移困难", "D. 注意力范围狭小"], "answer": ["D"], "set": 2}, {"id": 486, "type": "single", "question": "真诚善良、乐观豁达、坚强自信、幽默风趣的人往往更受他人欢迎，更易交到朋友，这是（）因素在影响人际交往。", "options": ["A. 交往频率", "B. 仪表吸引", "C. 兴趣爱好", "D. 个性品质"], "answer": ["D"], "set": 2}, {"id": 487, "type": "single", "question": "爱情不应由“父母之命，媒妁之言”撮合，这体现了爱情的（）特点。", "options": ["A. 自主性", "B. 对等性", "C. 直觉性", "D. 主动性"], "answer": ["A"], "set": 2}, {"id": 488, "type": "single", "question": "由于面临（）的危机，“理想我”和“现实我”之间出现分化、矛盾，促使青少年去解决矛盾、追求自我意识的统一。", "options": ["A. 自我发展性", "B. 自我迷茫性", "C. 自我同一性", "D. 自我混乱性"], "answer": ["C"], "set": 2}, {"id": 489, "type": "single", "question": "罗杰斯认为，学习是学习者内在潜能的发挥。人类的学习是一种自发的、有目的、有选择地学习过程。教学任务就是创设一种有利于学生（）的情境，使得学生的潜能得以充分发挥。", "options": ["A. 学习潜能发挥", "B. 能动学习", "C. 目标明确化的学习", "D. 自主选择学习"], "answer": ["A"], "set": 2}, {"id": 490, "type": "single", "question": "不能仅仅一种行为或者一种偶然的行为来判断他人或自己的心理是否健康，要根据人们所处的时代、环境、年龄、文化背景等方面的因素联系起来去判别。这是心理健康状态的（）。", "options": ["A. 动态性", "B. 连续性", "C. 相对性", "D. 可逆性"], "answer": ["C"], "set": 2}, {"id": 491, "type": "single", "question": "巴甫洛夫首创了（）。", "options": ["A. 刺激—反应模式", "B. 条件反射学习理论", "C. 操作条件作用学习理论", "D. 社会学习理论"], "answer": ["B"], "set": 2}, {"id": 492, "type": "single", "question": "有的同学想在大学生活中锻炼自己的活动能力，但是没有充裕的时间去参加社团活动及社会实践，这是（）。", "options": ["A. 趋避冲突", "B. 心理冲突", "C. 双趋冲突", "D. 双避冲突"], "answer": ["A"], "set": 2}, {"id": 493, "type": "single", "question": "（）指出，人类婚姻家庭从群婚到一夫一妻，到现代性爱发展的过程，完全是由生产力的发展状况和生产关系所有制的性质所决定的。", "options": ["A. 巴枯宁", "B. 恩格斯", "C. 马克思", "D. 列宁"], "answer": ["B"], "set": 2}, {"id": 494, "type": "single", "question": "（）是在沟通过程中，不但有能力正确地了解对方的感受，以及那些感受包含的意义，同时还可以将自己的这种感受向对方传达。", "options": ["A. 理解力", "B. 同情心", "C. 同理心", "D. 感受力"], "answer": ["C"], "set": 2}, {"id": 495, "type": "single", "question": "在集体活动中，男女生之间不愿接触，总是男生一群，女生一帮，泾渭分明。这是处于我国学者划分的性意识的（）阶段。", "options": ["A. 讨厌异性期", "B. 漠视异性期", "C. 异性追求期", "D. 疏远异性期"], "answer": ["D"], "set": 2}, {"id": 496, "type": "single", "question": "金斯伯格提出的职业生涯发展中幻想期的职业需求特点是（）。", "options": ["A. 以“需要”为主要考虑因素，幻想中的角色扮演很重要", "B. 以“喜好”为主要考虑因素，决定个体抱负和活动", "C. 以“能力”为主要考虑因素，能力逐渐具有重要作用", "D. 单纯凭自己的兴趣爱好，不考虑自身的条件、能力水平和社会需要与机遇，完全处于幻想之中"], "answer": ["D"], "set": 2}, {"id": 497, "type": "single", "question": "一个人容貌姣好、阳光健康、谈吐风趣、举止大方、待人有礼、风度翩翩和学识渊博等，都会使人产生愉悦的情感并愿意与之交往。这是（）在起作用。", "options": ["A. 态度、兴趣或爱好", "B. 仪表吸引", "C. 空间距离", "D. 互补需要"], "answer": ["B"], "set": 2}, {"id": 498, "type": "single", "question": "性心理健康表现在（）方面，具有正常的性爱感情和性人格。", "options": ["A. 性认知", "B. 性情感", "C. 性心理", "D. 性意志"], "answer": ["A"], "set": 2}, {"id": 499, "type": "single", "question": "作为认识的主体，我们要尽量减少（）对自己的影响，要把第一印象与日后的观察结合起来，客观、公正地认识一个人，对人有一个正确的评价。", "options": ["A. 投射效应", "B. 晕轮效应", "C. 首因效应", "D. 刻板印象"], "answer": ["C"], "set": 2}, {"id": 500, "type": "single", "question": "心理学家（）及其同事通过对儿童的长期研究，提出了具有里程碑意义的依恋理论。", "options": ["A. 蒙台梭利", "B. 泰尔其尔", "C. 马斯洛", "D. 鲍尔比"], "answer": ["D"], "set": 2}, {"id": 501, "type": "single", "question": "个体遭受挫折后，为了维护自尊，减少焦虑，就找出种种理由为自己辩解，增加自己行为的合理性和可接受性，以起到减轻心理压力的作用，这是（）。", "options": ["A. 自我宣泄", "B. 自我安慰", "C. 自我暗示", "D. 自我欺骗"], "answer": ["B"], "set": 2}, {"id": 502, "type": "single", "question": "对大学生进行自我意识的培养时，要引导他们敢于和（）比较。", "options": ["A. 虚拟世界的人", "B. 比自己情况差的人", "C. 与自己情况差不多的人", "D. 周围的强者"], "answer": ["D"], "set": 2}, {"id": 503, "type": "single", "question": "交往是一种难以观察的心理活动，交往的效果是因人而异的独特的内心体验。这指的是交往的（）特点。", "options": ["A. 两重性", "B. 独特性", "C. 相互性", "D. 复杂性"], "answer": ["D"], "set": 2}, {"id": 504, "type": "single", "question": "著名物理学家杨振宁和李政道在一次午餐会的闲聊中产生灵感，这是人际交往的（）功能。", "options": ["A. 交流信息", "B. 创新创造", "C. 灵感顿悟", "D. 协同合作"], "answer": ["A"], "set": 2}, {"id": 505, "type": "single", "question": "“自我感觉、自我观察、自我概念、自我分析和自我评价”等，属于（）的内容。", "options": ["A. 自我认识", "B. 自我体验", "C. 自我调控", "D. 自我管理"], "answer": ["A"], "set": 2}, {"id": 506, "type": "single", "question": "在人格发展八阶段理论的青春期中，个体会面临的危机是（）。", "options": ["A. 勤奋对自卑", "B. 自我同一性对角色混乱", "C. 亲密对孤独", "D. 整合对失望"], "answer": ["B"], "set": 2}, {"id": 507, "type": "single", "question": "（）认为学习是认知结构的组织与重新组织。", "options": ["A. 斯金纳", "B. 布鲁纳", "C. 托尔曼", "D. 桑代克"], "answer": ["B"], "set": 2}, {"id": 508, "type": "single", "question": "用形象事物比拟抽象事物，使抽象事物变得直观，便于理解和记忆。这是（）。", "options": ["A. 分类记忆法", "B. 形象比拟记忆法", "C. 联想记忆法", "D. 简约记忆法"], "answer": ["B"], "set": 2}, {"id": 509, "type": "single", "question": "有调查显示，男大学生对遗精的情绪反应中感到“羞愧”、“厌恶”、“不安”、“困惑”的共占（）。", "options": ["A. 13.70%", "B. 14.70%", "C. 15.70%", "D. 16.70%"], "answer": ["D"], "set": 2}, {"id": 510, "type": "single", "question": "“知之深，爱之切”指的是（）。", "options": ["A. 情绪对认知的影响", "B. 认知对意志的影响", "C. 认知对情绪的影响", "D. 意志对认知的影响"], "answer": ["C"], "set": 2}, {"id": 511, "type": "single", "question": "金斯伯格提出的职业生涯发展中现实期的职业需求特点是（）。", "options": ["A. 对所需求的职业不再模糊不清，已有具体的、现实的职业目标，表现出最大的特点是客观性、现实性，讲求实际", "B. 使职业偏好逐渐具体化、特定化并实现职业偏好", "C. 有职业兴趣，但不仅限于此，更多的客观地审视自身各方面的条件、能力;开始注意职业角色的社会地位、社会意义以及社会对该职业的需要", "D. 发展自我形象，发展对工作世界的正确态度，并了解工作的意义"], "answer": ["A"], "set": 2}, {"id": 512, "type": "single", "question": "个体想要达到的完善的自我形象，这是（）。", "options": ["A. 幻想我", "B. 镜中我", "C. 投射我", "D. 理想我"], "answer": ["D"], "set": 2}, {"id": 513, "type": "single", "question": "在人格发展八阶段理论的成年期，个体解决危机能形成（）。", "options": ["A. 具有求学、做事和待人的基本能力", "B. 与他人的同一性相融合，能投入工作、建立亲密关系", "C. 指导下一代成长、关心他人的需要和利益", "D. 情感的整合、超然的态度，有秩序感和意义感"], "answer": ["C"], "set": 2}, {"id": 514, "type": "single", "question": "那些没有友好、合作、融洽的人际关系的大学生常常表现出压抑、敏感、自我防卫和难以合作等特点，而那些善于交往、关系融洽的大学生则表现出快乐开朗、注重学习和成就等积极特点。这是人际交往的（）功能。", "options": ["A. 促进成才", "B. 心理保健", "C. 交流信息", "D. 个性发展"], "answer": ["B"], "set": 2}, {"id": 515, "type": "single", "question": "学生只注意到老师在台上讲课怎样，很少去想老师作为一个人也有许多其他方面的欢乐和苦恼。这是（）。", "options": ["A. 角色固着", "B. 光环效应", "C. 近因效应", "D. 投射效应"], "answer": ["A"], "set": 2}, {"id": 516, "type": "single", "question": "1977年，美国罗彻斯特大学教授恩格尔提出了（）。", "options": ["A. 生物—社会医学模式", "B. 生物—心理—社会医学模式", "C. 生物—心理医学模式", "D. 心理—社会医学模式"], "answer": ["B"], "set": 2}, {"id": 517, "type": "single", "question": "有的同学想减肥，但是又管不住自己的嘴吃东西，这是（）。", "options": ["A. 心理冲突", "B. 双避冲突", "C. 趋避冲突", "D. 双趋冲突"], "answer": ["C"], "set": 2}, {"id": 518, "type": "single", "question": "看到一个人举止热情、大方，便容易得出该人聪明、慷慨、能力强的结论;看到某人话少，就会认为此人冷漠、僵化。这是人际交往中的（）。", "options": ["A. 光环效应", "B. 首因效应", "C. 投射效应", "D. 近因效应"], "answer": ["A"], "set": 2}, {"id": 519, "type": "single", "question": "1936年4月19日在（）正式成立了“中国心理卫生协会”，选举了吴南轩等35位理事及21位监事。", "options": ["A. 广州", "B. 上海", "C. 北京", "D. 南京"], "answer": ["D"], "set": 2}, {"id": 520, "type": "single", "question": "哮喘这一疾病与（）有关。", "options": ["A. 过分依赖，希望被人照顾", "B. 听话，带有强迫性，抑郁，心情矛盾", "C. 忙碌，好胜，好争强，急躁，善于把握环境", "D. 压抑，愤怒，争强好胜"], "answer": ["A"], "set": 2}, {"id": 521, "type": "multi", "question": "爱情的特点包括（）。", "options": ["A. 自主性", "B. 对等性", "C. 直觉性", "D. 排他性"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 522, "type": "multi", "question": "按照儿童与母亲或其主要的养育者之间情感的表现，把人类的依恋关系分为（）。", "options": ["A. 安全型", "B. 焦虑型", "C. 回避型", "D. 疏远型"], "answer": ["A", "B", "C"], "set": 2}, {"id": 523, "type": "multi", "question": "在恋爱中需要完成的重要心理任务是（）。", "options": ["A. 要更了解自己", "B. 要培养爱人的能力", "C. 要学会解决矛盾", "D. 要丰富生活经验"], "answer": ["A", "B"], "set": 2}, {"id": 524, "type": "multi", "question": "大学生人际交往的特点包括（）。", "options": ["A. 高期望值与高挫折感交织", "B. 情感型交往与功利型交往兼有", "C. 交往范围拓展与宿舍中心并存", "D. 网络社交与现实交往结合"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 525, "type": "multi", "question": "大学生独特的恋爱心理现象包括（）。", "options": ["A. 注重恋爱过程，轻视恋爱结果", "B. 主观学业第一，客观爱情至上", "C. 恋爱观念开放，传统道德淡化", "D. 失恋现象普遍，心理反应多元"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 526, "type": "multi", "question": "心理学是研究人的心理现象及发生发展规律的科学，它的主要研究内容包括（），既相互独立又相互联系。", "options": ["A. 心理动力", "B. 心理过程", "C. 心理状态", "D. 心理特征"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 527, "type": "multi", "question": "以下属于大学生常见矛盾冲突的是（）。", "options": ["A. 独立性和依赖性的矛盾", "B. 理想性和现实性的矛盾", "C. 强烈的成才意识与知识经验不足的矛盾", "D. 性生理成熟和性心理成熟相对迟缓的矛盾"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 528, "type": "multi", "question": "青春期至成年这段时期，个体的自我意识发展呈现出如下特点:（）。", "options": ["A. 个体能从自己的观点出发来认识事物，而不是人云亦云，思想和行为带有浓厚的个人主观色彩", "B. 个体能根据自己所认识的人的特点，如气质性格和身体特征等，强调相应事物的重要性，从而形成自己特有的价值体系", "C. 个体能追求理想目标，出现了“理想我”", "D. 个体的抽象思维能力大大提高，使自我意识能超越具体的情境，进入精神领域，从而表现出对哲学、伦理学和文学等探讨人生问题的学科的兴趣。"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 529, "type": "multi", "question": "大学生自我意识发展过程中存在的不适应现象包括（）。", "options": ["A. 自我中心", "B. 自卑", "C. 自负", "D. 懒惰"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 530, "type": "multi", "question": "心理动力决定个体对现实世界的认知态度和对活动对象的选择与方向，它主要包括（）等。", "options": ["A. 动机", "B. 需要", "C. 兴趣", "D. 世界观"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 531, "type": "multi", "question": "心理疾病的影响因素包括（）。", "options": ["A. 遗传基因", "B. 社会环境以及家庭和学习的小环境", "C. 个性心理特征", "D. 自我生活方式"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 532, "type": "multi", "question": "大学生的心理发展的特点包括（）。", "options": ["A. 过渡性", "B. 可塑性", "C. 矛盾性", "D. 差异性"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 533, "type": "multi", "question": "大学生确立合理目标的过程包括（）。", "options": ["A. 把握大学阶段目标确立的过程", "B. 学会制定明确合理的发展目标", "C. 尝试制定难度大的长远目标", "D. 实施、检验与调整既定目标"], "answer": ["A", "B", "D"], "set": 2}, {"id": 534, "type": "multi", "question": "心理健康的特点（）。", "options": ["A. 心理健康的状态具有相对性", "B. 心理健康的状态具有连续性", "C. 心理健康的状态具有可逆性", "D. 心理健康的状态具有动态性"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 535, "type": "multi", "question": "大学生自我认识发展的矛盾性表现在许多方面，最主要的是（）。", "options": ["A. “主观我”与“客观我”之间的矛盾", "B. “理想我”与“现实我”之间的矛盾", "C. 成熟性与幼稚性之间的矛盾", "D. 独立性与依附性之间的矛盾"], "answer": ["A", "B", "D"], "set": 2}, {"id": 536, "type": "multi", "question": "自我意识的发展模式是（）的过程。", "options": ["A. 自我分析", "B. 自我分化", "C. 自我矛盾", "D. 自我统一"], "answer": ["B", "C", "D"], "set": 2}, {"id": 537, "type": "multi", "question": "大学生自我意识发展的特点包括（）。", "options": ["A. 自我认识的自觉性逐步提高，但又现矛盾性", "B. 自我认识的完全成熟性", "C. 自我体验的深刻性不断增强，但又呈两极性", "D. 自我调控的能力明显提高，但又具动摇性"], "answer": ["A", "C", "D"], "set": 2}, {"id": 538, "type": "multi", "question": "目前国内心理咨询机构主要包括以下（）类别。", "options": ["A. 学校心理咨询中心", "B. 学校就业指导中心", "C. 附设在各种医疗机构中的心理咨询门诊", "D. 更加专业一点的心理机构"], "answer": ["A", "C", "D"], "set": 2}, {"id": 539, "type": "multi", "question": "心理学测验工具的局限性主要是由于（）原因造成的。", "options": ["A. 测验内容的限制", "B. 测验取样的限制", "C. 使用上的限制", "D. 对于结果解释上的限制"], "answer": ["B", "C", "D"], "set": 2}, {"id": 540, "type": "multi", "question": "适应一般要经历（）等环节。", "options": ["A. 环境与自我评估", "B. 态度改变", "C. 行为改变", "D. 行为选择"], "answer": ["A", "B", "D"], "set": 2}, {"id": 541, "type": "multi", "question": "积极悦纳自我要从（）等方面进行努力。", "options": ["A. 忽略自己的短处", "B. 肯定自己的长处", "C. 善待自己的短处", "D. 正确对待挫折"], "answer": ["B", "C", "D"], "set": 2}, {"id": 542, "type": "multi", "question": "学习的联结理论的代表人物有（）。", "options": ["A. 托尔曼", "B. 桑代克", "C. 华生", "D. 斯金纳"], "answer": ["B", "C", "D"], "set": 2}, {"id": 543, "type": "multi", "question": "常见的记忆力问题包括（）。", "options": ["A. 识记速度慢", "B. 注意力减弱", "C. 保持时间短", "D. 回忆效果差"], "answer": ["A", "C", "D"], "set": 2}, {"id": 544, "type": "multi", "question": "非智力因素包括（）等。", "options": ["A. 动机", "B. 思维力", "C. 注意力", "D. 情感"], "answer": ["A", "D"], "set": 2}, {"id": 545, "type": "multi", "question": "大学学习的特点包括（）等。", "options": ["A. 自主选择性", "B. 专业性", "C. 形式多样化", "D. 研究探索与创新性"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 546, "type": "multi", "question": "循序渐进的基本要求是（）。", "options": ["A. 学习要掌握学科的知识结构，要由浅到深、由点到面地逐步进行，尤其要注意新旧知识之间的联系。", "B. 学习要遵循人的认识规律，一步一步的进行。", "C. 遵循自己的智能发展规律，量力而行，逐步建立适合自己的认识结构，不可超越自己的实际情况，盲目地追求不可能达到的目标。", "D. 学习要遵循知识积累的规律，从质到量，逐步提高。"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 547, "type": "multi", "question": "自我意识从内容上划分，可以分为（）。", "options": ["A. 生理自我", "B. 生物自我", "C. 心理自我", "D. 社会自我"], "answer": ["A", "C", "D"], "set": 2}, {"id": 548, "type": "multi", "question": "有效调控自我的方面（）。", "options": ["A. 合理确立“理想我”", "B. 努力提高“现实我”", "C. 勇敢超越自我", "D. 不断增强意志力"], "answer": ["A", "B", "D"], "set": 2}, {"id": 549, "type": "multi", "question": "只有投入团体之中，才能够更好地表达自我和获得必要的帮助。投入团体主要包括的含义有（）。", "options": ["A. 个人克服自我障碍，积极参与到团体当中", "B. 以自我问题为重点，免受他人问题的干扰", "C. 独立解决心理问题，自立自强", "D. 遵守团体规则，适当约束自我"], "answer": ["A", "D"], "set": 2}, {"id": 550, "type": "multi", "question": "乔韩窗口理论是关于人自我认识的窗口理论，包括了（）窗口。", "options": ["A. 公开我", "B. 盲目我", "C. 隐藏我", "D. 潜能我"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 551, "type": "multi", "question": "悦纳自我的内容包括（）等。", "options": ["A. 接受自己，喜欢自己，不苛求自己，觉得自己独一无二，有高度的自尊和自信，有价值感、自豪感、愉快感和满足感", "B. 性情开朗，对生活乐观，对未来充满憧憬，积极情绪多于消极情绪", "C. 能平静而又理智地看待自己的长处与短处，冷静地对待自己的得与失", "D. 既不以虚幻的自我补偿内心的空虚，也不以消极回避漠视自己的现实，更不以怨恨、自责甚至厌恶来否定自己"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 552, "type": "multi", "question": "自我调节的方法有（）等。", "options": ["A. 自我暗示法", "B. 自我宣泄法", "C. 自我放松法", "D. 移情转移法"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 553, "type": "multi", "question": "爱情的社会性属性的内涵包括（）等。", "options": ["A. 爱情包含着理性而有目的的交往", "B. 爱情与社会的道德标准相关", "C. 爱情与美的领域", "D. 爱情的思想内容和社会发展水平的联系"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 554, "type": "multi", "question": "人际交往的心理效应包括（）等。", "options": ["A. 首因效应", "B. 晕轮效应", "C. 刻板效应", "D. 投射效应"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 555, "type": "multi", "question": "大学生的性行为主要是（）。", "options": ["A. 婚后性行为", "B. 自慰性行为", "C. 边缘性行为", "D. 婚前性行为"], "answer": ["B", "C", "D"], "set": 2}, {"id": 556, "type": "multi", "question": "婚前性行为的不良影响包括（）。", "options": ["A. 影响爱情的健康发展", "B. 影响社会发展", "C. 影响身体健康", "D. 影响心理健康"], "answer": ["A", "C", "D"], "set": 2}, {"id": 557, "type": "multi", "question": "大学生的人际关系按照交往的范围可以分为（）。", "options": ["A. 个体与家庭之间", "B. 个体与群体之间", "C. 群体与群体之间", "D. 个体与个体之间"], "answer": ["B", "C", "D"], "set": 2}, {"id": 558, "type": "multi", "question": "大学生需要培养的良好心理品质包括（）等。", "options": ["A. 培养创新精神", "B. 增强自信心", "C. 培养健康情绪", "D. 锻炼坚强意志"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 559, "type": "multi", "question": "正确的择业观念有（）等。", "options": ["A. 高尚择业观念", "B. 主动择业观念", "C. 多次择业观念", "D. 平等择业观念"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 560, "type": "multi", "question": "健全自我意识的标准包括（）。", "options": ["A. 有自知之明，知道自己的优势，也知道自己的劣势，能正确评价自我和自我发展", "B. 自我认识、自我体验和自我调控协调一致", "C. 积极的、自我肯定的、独立的并与外界保持一致", "D. 理想自我和现实自我统一，有积极的目标意识和内省意识，积极进取，永无止境"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 561, "type": "multi", "question": "自我意识从结构上划分，可以分为（）。", "options": ["A. 自我认识", "B. 自我体验", "C. 自我管理", "D. 自我调控"], "answer": ["A", "B", "D"], "set": 2}, {"id": 562, "type": "multi", "question": "大学生恋爱中常见的心理困惑包括（）。", "options": ["A. 寂寞与爱情", "B. 好感与爱情", "C. 虚荣与爱情", "D. 友谊与爱情"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 563, "type": "multi", "question": "大学生要根据（）来寻求适合的学习方法。", "options": ["A. 个体生理状态", "B. 个性特点", "C. 思维的状态", "D. 不同学科"], "answer": ["B", "C", "D"], "set": 2}, {"id": 564, "type": "multi", "question": "当在恋爱中遇到挫折时，我们应该（）。", "options": ["A. 在必要时寻求社会支持", "B. 情绪宣泄与管理", "C. 接受已经发生的事无法改变的事实", "D. 从挫折中学习"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 565, "type": "multi", "question": "学生学习的特点是（）。", "options": ["A. 学习的计划性、组织性、目的性十分明确", "B. 学习内容以学习间接知识、经验为主", "C. 学习过程是积极主动的，包含了复杂的心理因素与活动", "D. 学习的目的不但要掌握知识和技能，还要发展思维能力，培养品德品质，形成一定的价值观、世界观，获得全面发展"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 566, "type": "multi", "question": "大学生性心理的矛盾冲突包括（）。", "options": ["A. 成熟的性生理与不成熟的性心理存在矛盾", "B. 性意识的强烈性与表现上的隐蔽性之间存在矛盾", "C. 性的社会性、道德性要求与性的压抑性、放纵性之间存在矛盾", "D. 性心理的开放性与保守性之间存在矛盾"], "answer": ["A", "B", "C"], "set": 2}, {"id": 567, "type": "multi", "question": "客观认识自我的途径包括（）等。", "options": ["A. 通过自我反省认识自己", "B. 分析他人对自己的评价", "C. 通过与他人比较认识自己", "D. 在人际交往的互动中了解自己"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 568, "type": "multi", "question": "人们对环境的适应，从适应的方向上看大体上有（）类型。", "options": ["A. 消极的适应", "B. 主动的适应", "C. 被动的适应", "D. 积极的适应"], "answer": ["A", "D"], "set": 2}, {"id": 569, "type": "multi", "question": "良好的职业思想意识包括（）等。", "options": ["A. 就业准备意识", "B. 就业竞争意识", "C. 就业风险意识", "D. 就业法律意识"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 570, "type": "multi", "question": "世界心理卫生联合会具体明确地指出心理健康的标志是（）。", "options": ["A. 身体、智力、情绪十分调和", "B. 适应环境，人际关系中彼此能谦让", "C. 有幸福感", "D. 在工作和职业中，能充分发挥自己的能力，过着有效率的生活。"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 571, "type": "multi", "question": "个体从出生到成熟，其生理发育时快时慢，其中处于增长速度高峰期的是（）。", "options": ["A. 出生后的第一年", "B. 出生后的半年", "C. 青春发育期", "D. 青年期"], "answer": ["A", "C"], "set": 2}, {"id": 572, "type": "multi", "question": "一个人懂得“同感”的重要性，但不能够做到“同感”。这是因为（）。", "options": ["A. 他人心理有问题，我们无法同感", "B. 不懂得必要的方法", "C. 自身有心理问题或者心理情结阻碍了我们", "D. 他人不愿意与我们同感"], "answer": ["B", "C"], "set": 2}, {"id": 573, "type": "multi", "question": "以下属于技能学习的是（）。", "options": ["A. 学习提高记忆力的方法", "B. 学习解题技巧", "C. 学习骑自行车", "D. 学习游泳"], "answer": ["C", "D"], "set": 2}, {"id": 574, "type": "multi", "question": "建立良好人际交往的方法包括（）。", "options": ["A. 倾听", "B. 幽默", "C. 共情", "D. 回避"], "answer": ["A", "B", "C"], "set": 2}, {"id": 575, "type": "multi", "question": "有效复习的方法包括（）。", "options": ["A. 及时复习", "B. 复习多样化", "C. 减少识记内容", "D. 反复阅读和尝试背诵相结合"], "answer": ["A", "B", "D"], "set": 2}, {"id": 576, "type": "multi", "question": "大学生爱的能力培养包括（）等。", "options": ["A. 表达爱的能力", "B. 接受爱的能", "C. 拒绝爱的能力", "D. 恋爱挫折的承受能力"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 577, "type": "multi", "question": "对于自负这一自我意识问题，自我调适的建议包括（）。", "options": ["A. 了解自负背后的意义", "B. 对比反思法", "C. 接受批评法", "D. 设问法"], "answer": ["A", "B", "C"], "set": 2}, {"id": 578, "type": "multi", "question": "合理的咨询关系应该能够达到以下（）功能。", "options": ["A. 促进来访者的自我探索和自我发现", "B. 促进来访者的情绪适宜宣泄和向合理方向改善", "C. 提高来访者的自尊和自信", "D. 给来访者提供一个向咨询人员模仿和取得认同的机会"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 579, "type": "multi", "question": "根据美国心理学家联合会的条例，属于保密例外的情况包括（）。", "options": ["A. 当确信一名未成年人是性虐待或其他虐待行为的受害者时", "B. 当来访者有自杀倾向，或经由一项测验显示来访者有高度危险时", "C. 当来访者有强烈伤害他人的倾向", "D. 当法庭要求提供个案资料时"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 580, "type": "multi", "question": "美国心理学家斯滕伯格提出的爱情三角理论，认为构成爱的要素有（）。", "options": ["A. 排他", "B. 激情", "C. 亲密", "D. 承诺"], "answer": ["B", "C", "D"], "set": 2}, {"id": 581, "type": "multi", "question": "大学生悦纳新的环境，包括（）等方面。", "options": ["A. 悦纳社团文化", "B. 悦纳校园环境", "C. 悦纳校园文化", "D. 悦纳集体生活"], "answer": ["B", "C", "D"], "set": 2}, {"id": 582, "type": "multi", "question": "人际交往的特点包括（）。", "options": ["A. 交往的两重性", "B. 交往的功能性", "C. 交往的相互性", "D. 交往的复杂性"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 583, "type": "multi", "question": "大学生性心理发展的特性包括（）。", "options": ["A. 性心理的本能性和朦胧性", "B. 性意识的强烈性与表现上的掩饰性", "C. 性心理的压抑性和动荡性", "D. 性心理的性别差异性"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 584, "type": "multi", "question": "团体作为一个社会单元，它的社会心理特点主要有（）方面。", "options": ["A. 消除成员顾虑", "B. 促进咨询师和成员关系和谐", "C. 满足成员的需要", "D. 利用团体凝聚力和领导的特点，吸引团体成员进行互相帮助"], "answer": ["C", "D"], "set": 2}, {"id": 585, "type": "multi", "question": "心理活动过程包括（）方面，它们从不同的角度能动地反映着客观事物及其相互之间的关系。", "options": ["A. 认知过程", "B. 体验过程", "C. 情绪情感过程", "D. 意志过程"], "answer": ["A", "C", "D"], "set": 2}, {"id": 586, "type": "multi", "question": "个性心理特征是人们在长期的认知、情绪和意志活动中形成的稳固而经常出现的心理特性，主要包括（）。", "options": ["A. 能力", "B. 气质", "C. 性格", "D. 态度"], "answer": ["A", "B", "C"], "set": 2}, {"id": 587, "type": "multi", "question": "驱力包括（）基本类型。", "options": ["A. 与温饱、安全有关的驱动力", "B. 与自我或自我保护有关的驱动力", "C. 与自我实现有关的驱动力", "D. 性爱的驱动力"], "answer": ["B", "D"], "set": 2}, {"id": 588, "type": "multi", "question": "影响大学生交往的因素有（）等。", "options": ["A. 交往频率", "B. 空间距离", "C. 相似的态度、兴趣爱好", "D. 仪表的吸引"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 589, "type": "multi", "question": "孤独包括（）等内容。", "options": ["A. 与他人之间的隔离，虽然与他人有联系，但是交往频度低，感觉自己形单影只", "B. 沉默寡言，较少参加集体活动，缺少知心朋友", "C. 与他人关系的疏离，想要与他人建立更亲密的关系，但是交往深度不够，达不到自己所期望的程度", "D. 与他人联系不够广泛，人际交往面狭窄，朋友少"], "answer": ["A", "C", "D"], "set": 2}, {"id": 590, "type": "multi", "question": "非智力因素在学校过程中的作用包括（）等。", "options": ["A. 驱动作用", "B. 定向作用", "C. 维持作用", "D. 强化作用"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 591, "type": "multi", "question": "爱情观主要有（）。", "options": ["A. 超理性主义的爱情观", "B. 超现实主义的爱情观", "C. 自然主义即泛性论的爱情观", "D. 性爱与情爱相结合的爱情观"], "answer": ["A", "C", "D"], "set": 2}, {"id": 592, "type": "multi", "question": "从广义上讲，学习是人和动物在生活过程中通过实践训练而获得的相对持久的适应性的心理变化。这个定义体现了学习的（）特点。", "options": ["A. 学习是动物和人都有的心理现象。", "B. 学习不是本能活动，而是后天习得的。", "C. 任何水平的学习都将引起适应的变化，不仅是外显行为的变化，也有内部过程的变化，这种变化不是短暂的而是长久的。", "D. 不能把个体的一切变化都归为学习，只有通过学习活动产生的变化才是学习。"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 593, "type": "multi", "question": "记忆力减退的调适方法包括（）等。", "options": ["A. 充分利用有意识记", "B. 尽量运用意义识记，促使机械识记意义化", "C. 手、脑、眼、耳并用，提高识记效果", "D. 养成注意习惯并重视训练的方法和技巧"], "answer": ["A", "B", "C"], "set": 2}, {"id": 594, "type": "multi", "question": "大学同学之间常见的关系包括（）。", "options": ["A. 班级内的同学关系", "B. 宿舍关系", "C. 伴侣关系", "D. 老乡、社团关系"], "answer": ["A", "B", "D"], "set": 2}, {"id": 595, "type": "multi", "question": "大学生学习适应问题包括（）。", "options": ["A. 学习目标不明确", "B. 教学方式不适应", "C. 学习内容不适应", "D. 自学方式不适应"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 596, "type": "multi", "question": "以下属于马斯洛提出的理论有（）。", "options": ["A. 需要层次理论", "B. 自我实现理论", "C. 元动机理论", "D. 高峰体验理论"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 597, "type": "multi", "question": "大学生呈现出了多样的恋爱观，包括（）。", "options": ["A. 享乐型", "B. 功利型", "C. 伴侣型", "D. 从众型"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 598, "type": "multi", "question": "科学学习方法遵循的一般原则为（）。", "options": ["A. 及时复习", "B. 系统学习", "C. 及时总结", "D. 循序渐进"], "answer": ["B", "C", "D"], "set": 2}, {"id": 599, "type": "multi", "question": "美国著名职业指导专家金斯伯格将人的职业选择心理的发展分为（）。", "options": ["A. 兴趣期", "B. 幻想期", "C. 尝试期", "D. 现实期"], "answer": ["B", "C", "D"], "set": 2}, {"id": 600, "type": "multi", "question": "在就业准备中，大学生要做好的能力方面的准备，掌握（）等能力。", "options": ["A. 语言文字表达能力", "B. 交际能力", "C. 辩证思维能力", "D. 组织管理能力"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 601, "type": "multi", "question": "人际交往的功能包括（）等。", "options": ["A. 个性发展的功能", "B. 交流信息的功能", "C. 心理保健的功能", "D. 认识自我的功能"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 602, "type": "multi", "question": "从自我观念上，自我意识可以分为（）。", "options": ["A. 反射我", "B. 现实我", "C. 投射我", "D. 理想我"], "answer": ["B", "C", "D"], "set": 2}, {"id": 603, "type": "multi", "question": "大学生就业准备意识包括（）等。", "options": ["A. 思想准备", "B. 知识准备", "C. 能力准备", "D. 信息准备"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 604, "type": "multi", "question": "我国心理学家根据学习内容将学习类别划分为（）。", "options": ["A. 知识的学习", "B. 技能的学习", "C. 以思维活动为主的能力学习", "D. 行为准则、习惯和道德品质的学习"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 605, "type": "multi", "question": "大学生人际交往问题的可能原因包括（）。", "options": ["A. 认知误区", "B. 情感弱化", "C. 技巧缺乏", "D. 个性缺陷"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 606, "type": "multi", "question": "舒伯提出了生涯发展理论，其中探索阶段包括（）。", "options": ["A. 试探期", "B. 能力期", "C. 过渡期", "D. 试验并稍作承诺期"], "answer": ["A", "C", "D"], "set": 2}, {"id": 607, "type": "multi", "question": "意志存在（）特征。", "options": ["A. 提高自控力", "B. 明确的目的性", "C. 以随意运动为基础", "D. 与克服困难相联系"], "answer": ["B", "C", "D"], "set": 2}, {"id": 608, "type": "multi", "question": "咨询心理学在总体上可以被分为（）。", "options": ["A. 与个人学习活动有关的各类咨询", "B. 与个人发展有关的各类咨询", "C. 与个人职业活动有关的各类咨询", "D. 与个人家庭生活有关的各类咨询"], "answer": ["B", "C"], "set": 2}, {"id": 609, "type": "multi", "question": "大学生网络人际关系的特点包括（）。", "options": ["A. 随意性", "B. 互助性", "C. 宣泄性", "D. 多维性"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 610, "type": "multi", "question": "大学生塑造健全自我意识包括（）。", "options": ["A. 客观认识自我", "B. 积极悦纳自我", "C. 有效调控自我", "D. 勇敢超越自我"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 611, "type": "multi", "question": "1908年5月6日，在社会各界的赞助和支持下，由比尔斯发起，在他的家乡成立了世界上第一个心理卫生组织。该协会提出的工作目标包括（）。", "options": ["A. 保持心理健康和防治心理疾病", "B. 提高精神病患者的待遇", "C. 普及关于心理疾病的正确知识", "D. 与心理卫生有关的机构合作。"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 612, "type": "multi", "question": "大学生人际交往中常见的困扰包括（）等。", "options": ["A. 孤独", "B. 羞怯", "C. 嫉妒", "D. 自卑"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 613, "type": "multi", "question": "心理健康的基本原则包括（）。", "options": ["A. 客观性原则", "B. 发展性原则", "C. 理论联系实际原则", "D. 系统性原则"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 614, "type": "multi", "question": "《心理学大辞典》认为:有机体是在不断运动变化中与环境取得平衡的，它可以概括为（）作用。", "options": ["A. 调适", "B. 同化", "C. 发展", "D. 顺应"], "answer": ["B", "D"], "set": 2}, {"id": 615, "type": "multi", "question": "大学生常见的适应心理问题包括（）等。", "options": ["A. 情绪适应问题", "B. 人际适应问题", "C. 学习适应问题", "D. 生活时应问题"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 616, "type": "multi", "question": "知识是人类对客观事物的属性、关系的反映，是人类社会经验的主要组成部分，包括（）。", "options": ["A. 自然地理知识", "B. 自然科学知识", "C. 社会科学知识", "D. 社会历史知识"], "answer": ["B", "C"], "set": 2}, {"id": 617, "type": "multi", "question": "大学生健康恋爱要正确处理的各种关系包括（）。", "options": ["A. 爱情与友情", "B. 爱情与亲情", "C. 爱情与学业", "D. 爱情与人生"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 618, "type": "multi", "question": "应试心理调适包括（）。", "options": ["A. 端正应试动机", "B. 保持身体健康", "C. 增强应试信心", "D. 掌握应试技巧"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 619, "type": "multi", "question": "在人际交往时应该遵守的基本原则包括（）。", "options": ["A. 平等原则", "B. 诚信原则", "C. 尊重原则", "D. 互利原则"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 620, "type": "multi", "question": "第一学年的生涯规划的任务是（）。", "options": ["A. 在基础课程学习、学生工作、体育运动、课余活动等方面来发展你的兴趣和技能", "B. 了解学校就业指导中心等类似机构所能提供的关于职业的信息，对不同的职业和职位有一定的认识", "C. 跟父母、朋友、老师和已经工作的前辈讨论自己对于职业的兴趣", "D. 参加一些跟求职有关的小组讨论、自我测试等，加深对自己的了解，明确自己需要加强的竞争力;同时，努力学习，尽可能得到高的分数"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 621, "type": "multi", "question": "性心理健康的标准包括（）等。", "options": ["A. 能正确认识和接纳自己的性别", "B. 能有正常的性欲望", "C. 与同龄人的性心理发展水平相当", "D. 具有较强的性适应能力"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 622, "type": "multi", "question": "系统学习的层次包括（）。", "options": ["A. 树状结构", "B. 网状联系", "C. 由点到面", "D. 引伸扩展"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 623, "type": "multi", "question": "团体关系按建立的动因可以划分为（）等。", "options": ["A. 学业型", "B. 同乡型", "C. 兴趣型", "D. 情缘型"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 624, "type": "multi", "question": "自我意识主要具有（）等特点。", "options": ["A. 个体性", "B. 社会性", "C. 能动性", "D. 丰富性"], "answer": ["A", "B", "C"], "set": 2}, {"id": 625, "type": "multi", "question": "按照适应的程度，可以划分为（）。", "options": ["A. 无适应", "B. 欠适应", "C. 中度适应", "D. 过分适应"], "answer": ["B", "C", "D"], "set": 2}, {"id": 626, "type": "multi", "question": "不良的择业心理有（）等。", "options": ["A. 自卑心理", "B. 焦虑心理", "C. 犹豫心理", "D. 冲动心理"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 627, "type": "multi", "question": "人际交往中的尊重原则包括（）。", "options": ["A. 自尊", "B. 尊重生命", "C. 尊重自然", "D. 尊重他人"], "answer": ["A", "D"], "set": 2}, {"id": 628, "type": "multi", "question": "对于学习疲劳这个学习问题，调适方法是（）。", "options": ["A. 营造良好的学习氛围，培养浓厚的学习兴趣", "B. 学会合理安排作息，保证睡眠时间", "C. 科学用脑，合理营养", "D. 加强复习，防止遗忘"], "answer": ["A", "B", "C"], "set": 2}, {"id": 629, "type": "truefalse", "question": "在我国学者认为性意识的三个阶段中，疏远异性期是在13/14-17/18岁。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 630, "type": "truefalse", "question": "羞怯是一种因过低的自我评价、安全感缺失而产生的消极情绪体验。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 631, "type": "truefalse", "question": "在青春发育期，每年长高少则3-5厘米，多则6-8厘米。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 632, "type": "truefalse", "question": "3岁左右的幼儿开始把自己作为客体来认知，掌握了人称代词“我”，会用“我”来表达自己的意愿。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 633, "type": "truefalse", "question": "自我认识主要涉及“我是什么样的人”和“我为什么是这样的人”等问题。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 634, "type": "truefalse", "question": "广义的生涯就是职业生涯，是一个人一生中职业、职位的变迁及工作、理想的实现过程。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 635, "type": "truefalse", "question": "对于处于生涯发展阶段中维持阶段的人来说，他们既需要维持属于他们的职位，同时又面临新的人员的挑战。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 636, "type": "truefalse", "question": "意志是自觉确定目标，并根据目标支配和调节行为，克服困难实现预定目标的心理过程，是人和动物都有的心理现象。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 637, "type": "truefalse", "question": "性是一门综合性的科学，它包括性生理学、性心理学、性社会学、性伦理学、性美学等。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 638, "type": "truefalse", "question": "智力因素是学习的必要心理条件。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 639, "type": "truefalse", "question": "荣格指出:心理健康是指一种持续的心理状态，当事人在那种情况下，能做出良好的适应，具有生命的活力，而能充分发挥其身心潜能。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 640, "type": "truefalse", "question": "联合国教科文组织对于21世纪学生教育提出了“学会认知，学会做事，学会共同生活，学会生存”的要求。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 641, "type": "truefalse", "question": "弗洛伊德把性欲的能量源泉叫做里比多，是驱使人寻求各种感官快乐的心理能量。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 642, "type": "truefalse", "question": "学业型人际关系是指大学生以所学专业或为了通过某种公共考试而形成的人际关系。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 643, "type": "truefalse", "question": "有的大学生对自我悦纳程度较高，不能容忍自己的不足，追求完美，因而产生了过强的学习动机。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 644, "type": "truefalse", "question": "爱情是双方基于一定的客观物质基础和共同的生活理想，以互爱为前提，以互相倾慕为基础，并渴望对方成为自己终身伴侣的最强烈、稳定、专一的感情。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 645, "type": "truefalse", "question": "网络人际关系的随意性特点体现的是人与人之间的“无限互联”。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 646, "type": "truefalse", "question": "学习的心理结构由智力因素所组成。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 647, "type": "truefalse", "question": "可以使用同一个心理健康标准来区分任何人在任何情境下的正常和异常心理。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 648, "type": "truefalse", "question": "弗洛伊德是新精神分析学派的代表人物之一，他认为现代人心理障碍的重要原因之一的两极化思维，如要么好，要么不好，两者水火不容。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 649, "type": "truefalse", "question": "大学生主要通过各种专业知识、技能的学习和社会实践来了解自己，心理测评等工具起不到认识自我的做用。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 650, "type": "truefalse", "question": "罗杰斯强调对学习方法的学习和掌握，强调在学习过程中获得知识和经验。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 651, "type": "truefalse", "question": "处于3岁至青春期阶段的少年主要根据他人的观点去认识世界，并根据他人对自己的评价来评价自我，因此被认为是社会自我发展阶段，也叫客观化时期。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 652, "type": "truefalse", "question": "学习是人与环境保持平衡、维持生存和发展所必需的条件，也是适应环境的手段。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 653, "type": "truefalse", "question": "心理健康标准是一个相对的概念，会随着社会的发展变化而变化，也因不同的社会文化背景而有差异。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 654, "type": "truefalse", "question": "个体对考试性质的认识程度、对考试利害关系的预测程度及对自身应付能力的估计程度不会直接影响其焦虑水平。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 655, "type": "truefalse", "question": "有的个性内向、沉默寡言、孤僻冷漠的大学生在人际交往中往往采取回避、退缩的消极方式。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 656, "type": "truefalse", "question": "性是人的自然属性和社会属性的统一。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 657, "type": "truefalse", "question": "交往的相互性指的是交往是一个相互作用的过程，是双方相互积极地施加影响的过程。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 658, "type": "truefalse", "question": "科学用脑是防止学习疲劳的关键。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 659, "type": "truefalse", "question": "布鲁纳认为，外在强化并不是学习产生的必要因素，不强化也会出现学习。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 660, "type": "truefalse", "question": "当个体处于自我矛盾阶段中时，自我体验的情绪变化幅度非常大、频率非常高。但这种现象是自我意识发展过程中不可避免的，是正常的。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 661, "type": "truefalse", "question": "出现对异性的向往，异性双方产生相互接近的渴望，这是性意识萌发的标志。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 662, "type": "truefalse", "question": "性行为只停留在手淫、性梦等方式的自我宣泄上，也是会对他人的身心造成影响的。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 663, "type": "truefalse", "question": "心理是人脑对客观事物的主观反映。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 664, "type": "truefalse", "question": "个体与个体之间的关系如同学关系、朋友关系、师生关系和亲子关系等。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 665, "type": "truefalse", "question": "美国心理学家凯利提出了晕轮效应，又称光环效应。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 666, "type": "truefalse", "question": "性别，是生理学上的词汇，常指男女两性在生物学上的差异。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 667, "type": "truefalse", "question": "自我体验反映了“主体我”和“客体我”之间的关系，如果“主体我”满足了“客体我”的需要就会产生肯定的自我体验。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 668, "type": "truefalse", "question": "学生干部只注重其干部身份，而忽略他作为学生的其他方面，这是刻板印象。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 669, "type": "truefalse", "question": "意志力强、情绪稳定、性格内向者应试心理较好。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 670, "type": "truefalse", "question": "角色固着是指人们对某一类人或一群人进行固定化判断和评价的认知倾向。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 671, "type": "truefalse", "question": "只有当自卑情绪带给我们负面影响时，我们才需要去加以调适。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 672, "type": "truefalse", "question": ".心理测验是科学认识自我的一个重要途径，即根据心理学家编制的有关量表所测验的结果进行论断。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 673, "type": "truefalse", "question": "为了活泼交往氛围，我们可以调侃他人，与他人拉近距离。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 674, "type": "truefalse", "question": "大学生自我认识的自觉性逐步提高，但又存在矛盾性。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 675, "type": "truefalse", "question": "学习的联结理论用刺激与反应的联结（即条件反射）来解释学习过程。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 676, "type": "truefalse", "question": "大学生的发展目标就是学习目标。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 677, "type": "truefalse", "question": "性器官和性功能的成熟使青少年开始意识到自己正在向成熟过渡，并逐渐产生性意识，同时也可能带来一系列身心问题。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 678, "type": "truefalse", "question": "儿童与母亲或者其主要养育者之间存在着一种依恋关系，是人类最开始的人际关系。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 679, "type": "truefalse", "question": "情感过程是心理过程的基础。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 680, "type": "truefalse", "question": "自我评估是指主体在外部变化作出正确判断的基础上，重新认识和了解自己的发展目标、自身特点、优势的过程，也是一个重新进行自我评价的过程。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 681, "type": "truefalse", "question": "罗杰斯主张“以当事人为中心”的心理治疗方法，首创非指导性治疗，强调人具备自我调整以恢复心理健康的能力。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 682, "type": "truefalse", "question": "对等性是爱情的最大特点。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 683, "type": "truefalse", "question": "人际交往既有积极的一面，也有消极的一面。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 684, "type": "truefalse", "question": "交往频率在一定关系上是情感亲疏的一个指标，但不是决定性指标。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 685, "type": "truefalse", "question": "对于处于生涯发展理论的衰退阶段的个体，由于其生理及心理机能日渐衰退，他们不得不隐退，且无法再发展其他新的角色。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 686, "type": "truefalse", "question": "自我分化可以笼统地划分为“主观我”和“客观我”。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 687, "type": "single", "question": "在（）家庭气氛中，成员之间的关系亲密度居中，一贯和气，几乎不发生矛盾。", "options": ["A. 和谐型", "B. 冲突型", "C. 离散型", "D. 平静型"], "answer": ["D"], "set": 2}, {"id": 688, "type": "single", "question": "情绪是大脑对外界刺激的一种自动、生物生理化学反应，是大脑边缘系统产生的一种化学物质，这种边缘系统的反应速度非常惊人，比我们的逻辑思维中心（脑皮质）反应速度（）万倍。", "options": ["A. 快6", "B. 慢6", "C. 慢8", "D. 快8"], "answer": ["D"], "set": 2}, {"id": 689, "type": "single", "question": "在接受朋友的礼物时，用高兴的表情及言语来表达自己的喜悦；伤心时找亲友诉说等等。这是情绪表达的（）方式。", "options": ["A. 向他人表达", "B. 升华表达", "C. 向环境表达", "D. 自我表达"], "answer": ["A"], "set": 2}, {"id": 690, "type": "single", "question": "有人对自己不友好，就得出结论说自己人缘不好或缺乏交往能力，这是不合理信念中的（）。", "options": ["A. 以偏概全", "B. 糟糕至极", "C. 此事不该发生", "D. 无限夸大后果"], "answer": ["A"], "set": 2}, {"id": 691, "type": "single", "question": "情绪智力训练专业人士认为，情绪的（）可以被管理。", "options": ["A. 80%", "B. 85%", "C. 90%", "D. 99%"], "answer": ["C"], "set": 2}, {"id": 692, "type": "single", "question": "在google网站的搜索结果中，（）以高达107万条的记录远远超过了曾经风行一时的“郁闷”。", "options": ["A. “焦虑”", "B. “烦躁”", "C. “纠结”", "D. “孤独”"], "answer": ["A"], "set": 2}, {"id": 693, "type": "single", "question": "“有爱心和同情心，并尊重他人，不以自我为中心”，这是“五因素人格”模型理论中的（）。", "options": ["A. 宜人性", "B. 适应性", "C. 奉献性", "D. 无私性"], "answer": ["A"], "set": 2}, {"id": 694, "type": "single", "question": "（）的教养方式与孩子的不安全依恋成正比。", "options": ["A. 专制型", "B. 忽视型", "C. 平静型", "D. 和谐型"], "answer": ["A"], "set": 2}, {"id": 695, "type": "single", "question": "（）提出，真正决定一个人成功与否的关键是情商而非智商。", "options": ["A. 拿破仑·希尔", "B. 丹尼尔·戈尔曼", "C. 哈洛德·墨沙", "D. 彼得·萨洛维"], "answer": ["B"], "set": 2}, {"id": 696, "type": "single", "question": "（）的教养方式与孩子的回避型依恋成正比。", "options": ["A. 专制型", "B. 忽视型", "C. 平静型", "D. 和谐型"], "answer": ["B"], "set": 2}, {"id": 697, "type": "multi", "question": "下列属于压力源学说中社会压力源的有（）。", "options": ["A. 与工作责任有关的压力和紧张", "B. 社会的巨大变化", "C. 自然界的灾害", "D. 个人生活的改变"], "answer": ["B", "C", "D"], "set": 2}, {"id": 698, "type": "multi", "question": "大学生情绪的特点包括（）。", "options": ["A. 情绪的丰富性", "B. 情绪的不稳定性", "C. 情绪的掩饰性", "D. 情绪的冲动性"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 699, "type": "multi", "question": "性格和气质的关系表现为（）。", "options": ["A. 性格对气质具有重要的调控作用", "B. 气质可以影响性格的表现方式", "C. 性格就是气质", "D. 气质可以影响性格特征形成和发展的速度"], "answer": ["A", "B", "D", "B"], "set": 2}, {"id": 700, "type": "multi", "question": "人格的稳定性表现在（）。", "options": ["A. 人格的跨时间的持续性", "B. 人格的跨空间的一致性", "C. 人格的跨对象的一致性", "D. 人格的跨情境的一致性"], "answer": ["A", "D"], "set": 2}, {"id": 701, "type": "multi", "question": "大学生常见的压力源包括（）等。", "options": ["A. 适应变化的生活", "B. 与父母分离", "C. 发展新的人际关系", "D. 亲密关系的建立"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 702, "type": "truefalse", "question": "恐惧是企图摆脱、逃避某种危险情景时所产生的体验。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 703, "type": "truefalse", "question": "应对压力的警觉反应阶段最大的特点是肾上腺分泌的肾上腺素减少。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 704, "type": "truefalse", "question": "孤独是人类社会一种正常的心理现象，是一种主观感觉而不是一种客观状态。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 705, "type": "truefalse", "question": "当个体与人发生利益或权利上的冲突时，其产生愤怒以应对，这是情绪的自我保护功能。 对", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 706, "type": "truefalse", "question": "压力是能够引起机体稳态失调并唤起适应反应的环境事件和情境。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 707, "type": "single", "question": "有人提出，（）是在一个人对待自己态度中表现出来的对自我价值的判断。", "options": ["A. 自信", "B. 自立", "C. 自强", "D. 自尊"], "answer": ["D"], "set": 2}, {"id": 708, "type": "single", "question": "火场中使用毛巾的注意事项，说法正确的是（）。", "options": ["A. 要用湿毛巾，不要用干毛巾", "B. 要用纯棉毛巾，不要用化纤毛巾", "C. 要将毛巾折叠加厚使用，不要单层使用", "D. 以上说的都对"], "answer": ["D"], "set": 2}, {"id": 709, "type": "single", "question": "在引起幸福感的需要中，与（）有关的需要，是指个人在特定时刻对其所处环境安全或良好的认知，其不仅包括自然物理环境的安全，还包含个人对人际交往环境的良好觉知。", "options": ["A. 控制感", "B. 觉知感", "C. 稳定感", "D. 安全感"], "answer": ["D"], "set": 2}, {"id": 710, "type": "single", "question": "（）是在分析、综合、对比的基础上推理演绎，从并列因素中做出最佳选择的思维方式。", "options": ["A. 抽象思维", "B. 形象思维", "C. 发散思维", "D. 集中思维"], "answer": ["D"], "set": 2}, {"id": 711, "type": "single", "question": "在引起幸福感的需要中，与（）有关的需要，是指个人感觉到自己有能力控制自己周围环境或生活状态时。", "options": ["A. 稳定感", "B. 安全感", "C. 控制感", "D. 能力感"], "answer": ["C"], "set": 2}, {"id": 712, "type": "single", "question": "超循环理论的创始人是（）。", "options": ["A. 艾尔", "B. 霭理斯", "C. 艾利斯", "D. 艾根"], "answer": ["D"], "set": 2}, {"id": 713, "type": "single", "question": "（）是一种把无关的事物联系起来进行创造性思考，从而产生新观点、新思想和新概念的联想方法。", "options": ["A. 接近联想", "B. 强制联想", "C. 对比联想", "D. 相似联想"], "answer": ["B"], "set": 2}, {"id": 714, "type": "single", "question": "天平使砝码和被称物体在力矩上找到了相同之处，所以天平的发明是（）的创造性成果。", "options": ["A. 求异思维", "B. 抽象逻辑思维", "C. 发散思维", "D. 求同思维"], "answer": ["D"], "set": 2}, {"id": 715, "type": "single", "question": "以下不会引起情绪性自杀的情绪状态是（）。", "options": ["A. 烦躁", "B. 悔恨", "C. 害羞", "D. 委屈"], "answer": ["C"], "set": 2}, {"id": 716, "type": "single", "question": "（）是用概念、范畴、规律、假说等元素，进行判断、类比、归纳和演绎的程序，即逻辑化的操作程序。", "options": ["A. 发散思维", "B. 集中思维", "C. 抽象思维", "D. 形象思维"], "answer": ["C"], "set": 2}, {"id": 717, "type": "multi", "question": "获得灵感的途径包括（）。", "options": ["A. 勤于思考", "B. 信息启迪", "C. 仔细分析", "D. 利用顿悟"], "answer": ["B", "D"], "set": 2}, {"id": 718, "type": "multi", "question": "联想的方法一般是（）。", "options": ["A. 对比联想", "B. 相似联想", "C. 接近联想", "D. 强制联想"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 719, "type": "multi", "question": "从个体自立发展角度，自立可以划分为（）等。", "options": ["A. 精神自立", "B. 身体自立", "C. 心理自立", "D. 经济自立"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 720, "type": "multi", "question": "判别创造力的标准包括（）。", "options": ["A. 是否可以重复", "B. 是否新颖", "C. 是否独特", "D. 是否具有社会或个人价值"], "answer": ["B", "C", "D"], "set": 2}, {"id": 721, "type": "multi", "question": "形象思维是以形象材料起主要作用的思维活动形式，包括（）。", "options": ["A. 具体形象思维", "B. 言语形象思维", "C. 形象逻辑思维", "D. 抽象形象思维"], "answer": ["A", "B", "C"], "set": 2}, {"id": 722, "type": "truefalse", "question": "生命的社会属性是指人作为人类社会成员所具有的各种属性，主要包括的是人的社会性。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 723, "type": "truefalse", "question": "智力有其自身完整的结构，包括观察力、记忆力、思维力和想象力四种基本因素。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 724, "type": "truefalse", "question": "有些创造力高的人，因为他们常常沉浸在自己的内心世界，其外在方面就显得落落寡合，社交能力方面有所欠缺。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 725, "type": "truefalse", "question": "生命存在的自然属性是人的本质属性。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 726, "type": "truefalse", "question": "晚上从火灾中惊醒，逃生时直接用手打开房门逃离火灾现场。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 727, "type": "single", "question": "在影响创造力形成和产生的要素中，属于外部影响因素的是（）。", "options": ["A. 智力和非智力因素", "B. 社会心理环境", "C. 知识技能", "D. 动机水平"], "answer": ["B"], "set": 2}, {"id": 728, "type": "single", "question": "扑救精密仪器火灾的最佳灭火剂是（）。", "options": ["A. 泡沫", "B. 二氧化碳", "C. 清水", "D. 干粉"], "answer": ["B"], "set": 2}, {"id": 729, "type": "single", "question": "创造过程中的（）包含着个人过去受的教育和由解决问题的经验形成的认识能力，也包括对资料的选择、处理和解决的策略。", "options": ["A. 准备期", "B. 酝酿期", "C. 明朗期", "D. 验证期"], "answer": ["A"], "set": 2}, {"id": 730, "type": "single", "question": "（）是人们在认识客观事物的过程中所形成的认识方面的稳定的心理特征的综合。", "options": ["A. 观察力", "B. 智力", "C. 创造力", "D. 思维力"], "answer": ["B"], "set": 2}, {"id": 731, "type": "single", "question": "生命的（），决定了生命不会仅仅满足于生存，而是试图探寻生命存在之外的价值和意义，使生命成为意义的存在。", "options": ["A. 生理属性", "B. 心理属性", "C. 精神属性", "D. 社会属性"], "answer": ["C"], "set": 2}, {"id": 732, "type": "single", "question": "被困在电梯中，以下自救方法正确的是（）。", "options": ["A. 使劲拍门求救", "B. 从电梯顶部脱险", "C. 电话或高声呼喊求救", "D. 静静等候"], "answer": ["C"], "set": 2}, {"id": 733, "type": "single", "question": "以下不属于情绪性自杀的特点的是（）。", "options": ["A. 比较迅速", "B. 发展期短", "C. 发展期长", "D. 突发性"], "answer": ["D"], "set": 2}, {"id": 734, "type": "single", "question": "（）是指一个人对自己能否成功完成一项任务所持的信心和期望，以及对自己成功完成某一项任务所具备的潜能的知识。", "options": ["A. 自我控制", "B. 自我期望", "C. 自我潜能", "D. 自我效能"], "answer": ["D"], "set": 2}, {"id": 735, "type": "multi", "question": "头脑风暴法一般遵循（）。", "options": ["A. 自由畅想原则", "B. 严禁评判原则", "C. 以量求质原则", "D. 综合完善原则"], "answer": ["A", "B", "C", "D", "B"], "set": 2}, {"id": 736, "type": "multi", "question": "我国古代主要的幸福观包括（）。", "options": ["A. 法家思想认为要依法治国，富国强兵", "B. 儒家理论推崇积极进取的生活，向外“齐家、治国、平天下”，向内要修身养性", "C. 道家思想主张清静无为，顺其自然，逃离尘世，过原始质朴和自由自在的田园生活", "D. 佛教认为生活本无幸福可言，要达到幸福的彼岸，只有灭除贪爱欲望，修行念佛，认识自我本心的佛性"], "answer": ["B", "C", "D"], "set": 2}, {"id": 737, "type": "multi", "question": "从内容上看，生命价值由（）构成。", "options": ["A. 生命的精神价值", "B. 生命的自我价值", "C. 生命的社会价值", "D. 生命的自然价值"], "answer": ["B", "C", "C"], "set": 2}, {"id": 738, "type": "multi", "question": "物质性生存原则指的是（）。", "options": ["A. 树立正确的生存意识", "B. 尊重和遵守客观规律", "C. 提高生存技能与解决问题的能力", "D. 尊重自然，正确处理人与自然的关系"], "answer": ["B", "C", "D"], "set": 2}, {"id": 739, "type": "truefalse", "question": "处于18-25岁青年后期的大学生，创造力发展达到最活跃时期，但尚未达到一生创造力的最高峰。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 740, "type": "truefalse", "question": "知识积累越多。对创造性贡献越大。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 741, "type": "truefalse", "question": "头脑风暴法的以量求质原则，旨在以数量来保证质量。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 742, "type": "truefalse", "question": "迄今为止，人们已经就生命的定义达成了共识。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 743, "type": "truefalse", "question": "当人们从事创造性工作时，他们的动机是目标中心的，是内在的。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 744, "type": "single", "question": "（）是指从不同事物（现象）中寻找相同之处的思维方法，就是要能透过现象，看出事物之间的本质联系。", "options": ["A. 求异思维", "B. 求同思维", "C. 正向思维", "D. 逆向思维"], "answer": ["B"], "set": 2}, {"id": 745, "type": "single", "question": "自身经过长期的评价和体验，进行了充分的判断和推理以后，逐渐萌发的自杀意向，并且有目的、有计划地选择自杀措施。这是（）自杀。", "options": ["A. 理智性", "B. 情绪性", "C. 目的性", "D. 坚决性"], "answer": ["A"], "set": 2}, {"id": 746, "type": "single", "question": "（）好比自行车车轮一样，许多辐条以车轴为中心沿半径向外辐射。", "options": ["A. 会聚思维", "B. 集中思维", "C. 辐合思维", "D. 发散思维"], "answer": ["D"], "set": 2}, {"id": 747, "type": "single", "question": "（）认为，自尊包括对获得信心、能力、本领、成就、独立和自由等的愿望，一个具有足够自尊的人总是更有信心，更有能力，也更有效率。", "options": ["A. 马斯洛", "B. 罗杰斯", "C. 班杜拉", "D. 莱布尼茨"], "answer": ["A"], "set": 2}, {"id": 748, "type": "single", "question": "地震发生时，身处高楼，下列选项中正确的自救防护措施是（）。", "options": ["A. 把靠垫举在头顶，蹲到坚固的桌子下面，护好头部", "B. 立刻向外跑，乘电梯下楼", "C. 蹲到外墙窗户旁躲避，找机会跳楼逃生", "D. 躲到吊柜下方"], "answer": ["A"], "set": 2}, {"id": 749, "type": "single", "question": "个体在一个领域里拥有（）程度知识水平时最有创造性。", "options": ["A. 中等", "B. 低等", "C. 高等", "D. 零"], "answer": ["A"], "set": 2}, {"id": 750, "type": "single", "question": "尽可能多地找出“狗和猫”之间的相同之处。这是（）。", "options": ["A. 一物多用", "B. 判断否定", "C. 同中求异", "D. 异中求同"], "answer": ["C"], "set": 2}, {"id": 751, "type": "multi", "question": "个体生存能力的技能包括（）。", "options": ["A. 人际交往技能", "B. 竞争谋略与技巧", "C. 社会适应能力", "D. 理财能力"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 752, "type": "multi", "question": "南京大学心理健康与教育中心研究将能够引起幸福感的需要归为（）。", "options": ["A. 与生理状态有关的需要", "B. 与意义感有关的需要", "C. 与控制感有关的需要", "D. 与安全感有关的需要"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 753, "type": "multi", "question": "创造性思维的类型包括（）。", "options": ["A. 抽象思维与形象思维", "B. 发散思维与集中思维", "C. 正向思维与逆向思维", "D. 求同思维与求异思维"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 754, "type": "truefalse", "question": "创造的全过程就是先由发散思维到集中思维，或从发散思维到集中思维的多次循环。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 755, "type": "truefalse", "question": "对待生命的首要原则就是珍爱生命、维护生命的存在。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 756, "type": "truefalse", "question": "原型启发是观察到其他事物的功能，从而发现新的解决问题的途径或方法。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 757, "type": "truefalse", "question": "逆向思维是指不按照常规思路、与自然过程相反，或与事物（现象）的常见特征、一般趋势相违的思维方式，又叫逆反思维。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 758, "type": "truefalse", "question": "克服自杀危机的关键在于进行“人格塑造“，帮助发生危机者恢复自信，改善心理缺陷，发挥个人潜能。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 759, "type": "single", "question": "在价值观、信念、性格等与社会因素关系紧密的特征上，（）更为重要。", "options": ["A. 遗传因素", "B. 社会环境因素", "C. 自然环境因素", "D. 自我调控因素"], "answer": ["B"], "set": 2}, {"id": 760, "type": "single", "question": "免受不良压力的人格是（）。", "options": ["A. 外在的完美主义者", "B. 内在的完美主义者", "C. A型人格", "D. B型人格"], "answer": ["D"], "set": 2}, {"id": 761, "type": "single", "question": "合理宣泄情绪的方式不包括（）。", "options": ["A. 摔东西", "B. 找好朋友倾诉", "C. 寻求心理咨询老师的帮助", "D. 痛快地哭一场"], "answer": ["A"], "set": 2}, {"id": 762, "type": "single", "question": "（）提出了情绪与认知相互作用的系统理论。", "options": ["A. 希尔", "B. 墨沙", "C. 戈尔曼", "D. 霍夫曼"], "answer": ["D"], "set": 2}, {"id": 763, "type": "single", "question": "当我们吃到不适的食物或看到不适的事物时，会产生厌恶感。这是情绪的（）功能。", "options": ["A. 自我保护", "B. 信号", "C. 社会适应", "D. 动机"], "answer": ["A"], "set": 2}, {"id": 764, "type": "single", "question": "以感受和感性为导向，直接表达自己的感受，在情绪爆发的时候不会鼓励他人的感受，情绪的波动性较大。这是情绪感受方式的（）。", "options": ["A. 身体型", "B. 思想型", "C. 情感型", "D. 现实型"], "answer": ["C"], "set": 2}, {"id": 765, "type": "single", "question": "在（）家庭气氛中，成员之间的关系趋于紧密，有时发生摩擦产生矛盾，但很快能够解决达到统一。", "options": ["A. 和谐型", "B. 冲突型", "C. 离散型", "D. 平静型"], "answer": ["A"], "set": 2}, {"id": 766, "type": "single", "question": "（）提出，心理防御机制是自我的一种防卫功能。", "options": ["A. 马斯洛", "B. 弗洛伊德", "C. 荣格", "D. 霍妮"], "answer": ["B"], "set": 2}, {"id": 767, "type": "multi", "question": "构建自己的社会支持系统需要我们（）。", "options": ["A. 获得社会支持", "B. 获得社会技能", "C. 学会社会生存", "D. 学会自我管理"], "answer": ["A", "B"], "set": 2}, {"id": 768, "type": "multi", "question": "心理学家的经典研究表明，人们普遍认为的“最消极的品质”有（）等。", "options": ["A. 说谎", "B. 装假", "C. 冷酷", "D. 粗鲁"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 769, "type": "multi", "question": "大学生健全人格塑造的途径包括（）。", "options": ["A. 优化教育环境，塑造人格", "B. 认识完善自我，培育人格", "C. 改革评价方式，尊重人格", "D. 树立良好校风，熏陶人格"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 770, "type": "multi", "question": "胆汁质者可以胜任的职业有（）。", "options": ["A. 法官", "B. 导游", "C. 推销员", "D. 外事接待人员"], "answer": ["B", "C", "D"], "set": 2}, {"id": 771, "type": "multi", "question": "生理上的不良压力以（）方式导致疾病。", "options": ["A. 压力给心理和身体施加长期的负担，降低身体的免疫力", "B. 压力导致突发性疾病", "C. 压力加重已有疾病", "D. 压力使人产生破坏健康甚至导致疾病的应对习惯"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 772, "type": "truefalse", "question": "尊重并感受自然能够帮助我们缓解孤独，提升心情。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 773, "type": "truefalse", "question": "人格在青春期形成后就不会再发生变化了。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 774, "type": "truefalse", "question": "“江山易改，本性难移“说的就是性格的稳定性。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 775, "type": "truefalse", "question": "社会文化压力源如性别、生态变化、经济制度改革、股市下滑、政治变动、军事危机，以及迁居他国（乡）等。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 776, "type": "truefalse", "question": "外在的完美主义者总是对他人吹毛求疵，深信自己都是对的。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 777, "type": "single", "question": "从（）的角度来说，健全人格是“自然人”向“社会人”转化的过程，表现为人对复杂社会关系的正确认识和良好适应。", "options": ["A. 生物学", "B. 心理学", "C. 政治学", "D. 社会学"], "answer": ["D"], "set": 2}, {"id": 778, "type": "single", "question": "承认、道歉或赔偿等方式来减轻心理创伤。这是心理防御方式中的（）。", "options": ["A. 解脱", "B. 承认", "C. 宣泄", "D. 认同"], "answer": ["A"], "set": 2}, {"id": 779, "type": "single", "question": "A型性格者患心脏病的人数是B型性格者的（）倍。", "options": ["A. 1", "B. 1-2", "C. 2-3", "D. 3"], "answer": ["C"], "set": 2}, {"id": 780, "type": "single", "question": "面对挫折和失败，有志者认真总结经验教训，在失败的废墟上重建人生的辉煌。这是人格的（）。", "options": ["A. 统合性和个体性的统一", "B. 稳定性和独立性的统一", "C. 功能性和协调性的统一", "D. 整体性和独特性的统一"], "answer": ["C"], "set": 2}, {"id": 781, "type": "single", "question": "从婴儿开始，随着年龄增长，一定的社会道德规范以及社会发展对人的素质的要求逐渐内化；同时个体不断适应环境，适应变化，以顺应时代发展。这就是人格逐渐形成、逐渐健全的过程。这体现了健全人格的（）。", "options": ["A. 不稳定性", "B. 发展性", "C. 适应性", "D. 相对性"], "answer": ["B"], "set": 2}, {"id": 782, "type": "single", "question": "研究表明，（）的安全依恋型孩子有较好的同伴关系，青少年时乐于与父母以外的人交往，形成良好的同伴关系和师生关系，较少有社交焦虑，成年期婚姻质量较高。", "options": ["A. 89%", "B. 79%", "C. 69%", "D. 59%"], "answer": ["D"], "set": 2}, {"id": 783, "type": "single", "question": "冥想、谈心、抚触、音乐、唱歌等都属于（）。", "options": ["A. 知觉放松技术", "B. 思想转换技术", "C. 思想放松技术", "D. 思想中断技术"], "answer": ["A"], "set": 2}, {"id": 784, "type": "single", "question": "个人的行为、思维、情绪等主观体验是压力状态的（）方面。", "options": ["A. 生理", "B. 内部", "C. 主观", "D. 心理"], "answer": ["D"], "set": 2}, {"id": 785, "type": "single", "question": "情绪ABC理论认为，（）是引起情绪及行为反应的间接原因。", "options": ["A. 不良后果", "B. 客观事实", "C. 诱发性事件", "D. 不合理信念"], "answer": ["C"], "set": 2}, {"id": 786, "type": "multi", "question": "有研究发现，人们表达情绪的方式包括（）。", "options": ["A. 向他人哭诉", "B. 向环境表达", "C. 向弱者表达", "D. 升华表达"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 787, "type": "multi", "question": "关于孤独的调适方法，包括（）。", "options": ["A. 接受并享受自己的孤独", "B. 依赖他人", "C. 尝试并接受他人", "D. 尊重并感受自然"], "answer": ["A", "C", "D"], "set": 2}, {"id": 788, "type": "multi", "question": "对于任何紧张性刺激我们都要分为（）阶段做出反应。", "options": ["A. 警觉反应", "B. 接受", "C. 抵抗", "D. 衰竭"], "answer": ["A", "C", "D"], "set": 2}, {"id": 789, "type": "multi", "question": "应对压力的方法和途径可以从（）来考虑。", "options": ["A. 自然环境层面", "B. 心理层面", "C. 生理层面", "D. 社会支持层面"], "answer": ["B", "C", "D"], "set": 2}, {"id": 790, "type": "multi", "question": "属于A型人格的特点包括（）。", "options": ["A. 竞争性强", "B. 缺乏耐心", "C. 举止稳当", "D. 事件紧迫感强"], "answer": ["A", "B", "D"], "set": 2}, {"id": 791, "type": "truefalse", "question": "平静型家庭气氛最有利于青少年形成良好的性格。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 792, "type": "truefalse", "question": "一个同学受了挫折欣喜若狂，受人赞赏却愤怒万分，这是情绪健康的表现。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 793, "type": "truefalse", "question": "当一个大学生比较自信、勇敢、有毅力，但又比较任性和粗暴时，要给予其更多的鼓励和更具体的帮助。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 794, "type": "truefalse", "question": "家庭是个体接受教化过程中出现最早的现实生活环境，对大学生人格特征起着重要作用。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 795, "type": "truefalse", "question": "一个人的情绪与其肢体动作没有关系。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 796, "type": "single", "question": "（）研究了创造力和智商的关系。", "options": ["A. 吉尔福特", "B. 帕内斯", "C. 鲍尔斯", "D. 凯库勒"], "answer": ["A"], "set": 2}, {"id": 797, "type": "single", "question": "尽可能多地找出“篮球和排球”之间的不同之处。这是（）。", "options": ["A. 一物多用", "B. 判断否定", "C. 同中求异", "D. 异中求同"], "answer": ["C"], "set": 2}, {"id": 798, "type": "single", "question": "金刚石和石墨都是由碳原子组成，成分完全相同，只是由于碳原子排列方式不同，两者的物理、化学性质均表现出极大的差别。这是（）。", "options": ["A. 求异思维", "B. 抽象逻辑思维", "C. 发散思维", "D. 求同思维"], "answer": ["A"], "set": 2}, {"id": 799, "type": "single", "question": "（）是通过书面或口头的方式提出问题，而引起人们创造的欲望、捕捉好设想的创新技法。", "options": ["A. 联想法", "B. 设问法", "C. 综摄法", "D. 头脑风暴法"], "answer": ["B"], "set": 2}, {"id": 800, "type": "single", "question": "大学生创造性思维发展的特点不包括（）。", "options": ["A. 抽象性", "B. 可塑性", "C. 发散性", "D. 综合性"], "answer": ["B"], "set": 2}, {"id": 801, "type": "single", "question": "（）是个体对生活的综合判断。", "options": ["A. 生活幸福度", "B. 生活满意度", "C. 生活价值感", "D. 生活实现度"], "answer": ["B"], "set": 2}, {"id": 802, "type": "multi", "question": "知识的有效性体现在（）。", "options": ["A. 知识越多越有利于创造", "B. 是在新情境中直接再现已有经验或知识的一部分", "C. 改造已有经验并用于解决新的问题", "D. 合并许多特殊的经验构成一个抽象的观念"], "answer": ["B", "C", "D"], "set": 2}, {"id": 803, "type": "multi", "question": "培养求同思维与求异思维的训练题包括（）。", "options": ["A. 一物多用", "B. 同中求异", "C. 异中求同", "D. 故事接力"], "answer": ["B", "C", "D"], "set": 2}, {"id": 804, "type": "multi", "question": "培养正向思维和逆向思维的训练题包括（）。", "options": ["A. 职业象征", "B. 故事接力", "C. 结果推测", "D. 以果求因"], "answer": ["C", "D"], "set": 2}, {"id": 805, "type": "truefalse", "question": "强制联想对于创造性活动没有帮助。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 806, "type": "truefalse", "question": "心理和生理是一个生命不可分割的两个部分，生理是个体一切意识活动的基础。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 807, "type": "truefalse", "question": "从自尊的高低维度来划分，可以分为高自尊和低自尊。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 808, "type": "truefalse", "question": "亚里士多德最早提出了快乐主义幸福观。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 809, "type": "single", "question": "（）两位心脏病学家在研究人格和工作压力的关系时，提出了AB型人格的分类。", "options": ["A. 郝姆斯和雷", "B. 凯勒和扎克", "C. 杰梅森和诺克", "D. 弗里德曼和罗森曼"], "answer": ["D"], "set": 2}, {"id": 810, "type": "single", "question": "情绪行为发生到升级只需要（）秒。", "options": ["A. 3-6", "B. 4-7", "C. 5-8", "D. 6-9"], "answer": ["B"], "set": 2}, {"id": 811, "type": "single", "question": "每个学生都需要老师的关爱；在老师关注下，他们会朝着老师期望的方向发展。这是（）。", "options": ["A. 投射效应", "B. 角色固着", "C. 皮格马利翁效应", "D. 晕轮效应"], "answer": ["C"], "set": 2}, {"id": 812, "type": "single", "question": "认为事情根本没有发生，以逃避自己心理上受到的刺激、不安和痛苦。这是心理防御方式中的（）。", "options": ["A. 冷漠", "B. 忽略", "C. 遗忘", "D. 否认"], "answer": ["D"], "set": 2}, {"id": 813, "type": "single", "question": "在（）阶段，身体资源被调动起来克服战斗或逃跑反应，身体存在大量调节激素。", "options": ["A. 警觉反应", "B. 抵抗", "C. 衰竭", "D. 接受"], "answer": ["B"], "set": 2}, {"id": 814, "type": "single", "question": "（）是一种轻微的、持久而平静的情绪状态，往往在一段较长的时间里影响着一个人的言行和情绪。", "options": ["A. 心态", "B. 心情", "C. 心境", "D. 应激"], "answer": ["C"], "set": 2}, {"id": 815, "type": "single", "question": "暴怒、狂喜、恐惧、悲痛欲绝与绝望等都属于（）状态。", "options": ["A. 心境", "B. 激动", "C. 应激", "D. 激情"], "answer": ["D"], "set": 2}, {"id": 816, "type": "multi", "question": "健全人格的特点包括（）。", "options": ["A. 存在一定的人格障碍或人格偏差", "B. 内部心理和谐发展", "C. 人格健全者能够正确处理人际关系，发展友谊", "D. 人格健全者能把自己的智慧和能力有效地运用到能获得成功的工作和事业上"], "answer": ["B", "C", "D"], "set": 2}, {"id": 817, "type": "multi", "question": "有一种观点认为，情绪是一种躯体和精神上的复杂的变化模式，包括（）。", "options": ["A. 生理唤醒", "B. 感觉", "C. 认知过程", "D. 行为反应"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 818, "type": "truefalse", "question": "大人表现出孩子行为，如达不到自己的要求就生气、哭泣、指责，这是退化的表现。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 819, "type": "truefalse", "question": "性格和人格是两个复杂的概念，但易于把它们作出严格的区分。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 820, "type": "truefalse", "question": "心理学家认为，双生子的研究是研究人格遗传因素的最佳方法。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 821, "type": "truefalse", "question": "不同的社会环境在人格形成和发展的各个阶段都起着相同的作用。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 822, "type": "truefalse", "question": "孤独的体验会对自己的心理能量产生消耗，带来种种消极体验；为了心理健康发展，我们要远离孤独。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 823, "type": "single", "question": "《水浒传》里的燕青使枪弄刀，弹琴吹箫，结交朋友等无所不会，说明他是（）。）", "options": ["A. 胆汁质", "B. 多血质", "C. 黏液质", "D. 抑郁质"], "answer": ["B"], "set": 2}, {"id": 824, "type": "single", "question": "善于社交、开朗、健谈、敏感、随便、活跃、关心自由等表现，这是（）的特征。）", "options": ["A. 胆汁质", "B. 多血质", "C. 黏液质", "D. 抑郁质"], "answer": ["B"], "set": 2}, {"id": 825, "type": "single", "question": "如心理冲突与挫折、不切实际的期望和欲望、不祥预感以及与工作责任有关的压力和紧张等等，这些属于（）。）", "options": ["A. 生理压力源", "B. 心理压力源", "C. 社会压力源", "D. 文化压力源"], "answer": ["B"], "set": 2}, {"id": 826, "type": "single", "question": "承认、道歉或赔偿等方式来减轻心理创伤。这是心理防御方式中的（）。）", "options": ["A. 解脱", "B. 承认", "C. 宣泄", "D. 认同"], "answer": ["A"], "set": 2}, {"id": 827, "type": "single", "question": "在（）阶段，压力存在太久，身体的防御能量耗尽，身体各功能缓慢下来，适应能力丧失。）", "options": ["A. 警觉反应", "B. 接受", "C. 抵抗", "D. 衰竭"], "answer": ["C"], "set": 2}, {"id": 828, "type": "single", "question": "有调查显示，有（）的被调查者表示会因愤怒而做出报复。）", "options": ["A. 11.20%", "B. 13.20%", "C. 15.20%", "D. 17.20%"], "answer": ["A"], "set": 2}, {"id": 829, "type": "single", "question": "在接受朋友的礼物时，用高兴的表情及言语来表达自己的喜悦；伤心时找亲友诉说等等。这是情绪表达的（）方式。）", "options": ["A. 向他人表达", "B. 升华表达", "C. 向环境表达", "D. 自我表达"], "answer": ["A"], "set": 2}, {"id": 830, "type": "single", "question": "面对挫折和失败，有志者认真总结经验教训，在失败的废墟上重建人生的辉煌。这是人格的（）。）", "options": ["A. 统合性和个体性的统一", "B. 稳定性和独立性的统一", "C. 功能性和协调性的统一", "D. 整体性和独特性的统一"], "answer": ["C"], "set": 2}, {"id": 831, "type": "single", "question": "《红楼梦》里的林黛玉多愁善感、弱不禁风，说明她是（）。）", "options": ["A. 胆汁质", "B. 多血质", "C. 黏液质", "D. 抑郁质"], "answer": ["D"], "set": 2}, {"id": 832, "type": "single", "question": "由于社会准则引起的，大学生对自我的责备与羞愧感，这是（）。）", "options": ["A. 生活性焦虑", "B. 社会性焦虑", "C. 现实性焦虑", "D. 道德性焦虑"], "answer": ["D"], "set": 2}, {"id": 833, "type": "multi", "question": "压力源学说将压力从压力来源的特点上分，划分为（）。）", "options": ["A. 生理压力源", "B. 心理压力源", "C. 社会压力源", "D. 文化压力源"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 834, "type": "multi", "question": "沃特·谢弗尔认为压力是个体生理和心理上的唤醒，是由施加的需求导致的。此说包括以下含义：（）。）", "options": ["A. 在通常情况下，心率加快、血压上升、肌肉紧张等唤醒，这种情况是不正常的", "B. 压力无处不在，是生活的普遍特征之一，我们不能逃避压力，而应该包容、管理和引导压力", "C. 唤醒调动了人身体的各个器官和组织的功能，在这些生理过程中，思想和感受非常清晰地融合在一起", "D. 在通常情况下，心率加快、血压上升、肌肉紧张等唤醒，这种情况是正常的，无所谓好与坏，是中性的"], "answer": ["B", "C", "D"], "set": 2}, {"id": 835, "type": "multi", "question": "大学生最易受的日常困扰影响包括（）。）", "options": ["A. 经济困窘", "B. 持续的学习压力", "C. 未来规划", "D. 令人厌烦的教师"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 836, "type": "multi", "question": "对情绪的干预建议可以从（）进行。）", "options": ["A. 客观事实", "B. 想法", "C. 感觉", "D. 反应"], "answer": ["B", "C", "D"], "set": 2}, {"id": 837, "type": "multi", "question": "对压力的应对类型包括（）。）", "options": ["A. 积极应对", "B. 消极应对", "C. 通过改变外在环境（物理环境和社会环境）去应对", "D. 改变自我去应对"], "answer": ["C", "D"], "set": 2}, {"id": 838, "type": "truefalse", "question": "心理学研究表明，将成功归因于外部因素，可以提升自豪感。）", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 839, "type": "truefalse", "question": "不同的社会环境在人格形成和发展的各个阶段都起着相同的作用。）", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 840, "type": "truefalse", "question": "情绪的过程性是指情绪表现为一种心理过程——发生、发展、高涨、下降和结束，同时伴随着能量的蓄积和发泄。）", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 841, "type": "truefalse", "question": "在基本情绪之上，可以派生出众多的复杂情绪，如厌恶、羞耻、悔恨、嫉妒、喜欢、同情等等。）", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 842, "type": "truefalse", "question": "人格是社会性和主体性的统一。）", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 843, "type": "single", "question": "“豁然开朗”、“茅塞顿开”、“灵机一动”，这些属于（）。）", "options": ["A. 启示", "B. 顿悟", "C. 意识", "D. 信息启迪"], "answer": ["B"], "set": 2}, {"id": 844, "type": "single", "question": "大脑受到某种刺激后，自然联想到同这一刺激相似的概念、经验、动作或事物，从而设计出新的发明项目的创造技法。）", "options": ["A. 接近联想", "B. 强制联想", "C. 对比联想", "D. 相似联想"], "answer": ["D"], "set": 2}, {"id": 845, "type": "single", "question": "心理危机过程持续不会太久，沮丧反应一般在（）个月内消失，否则应视为病态。）", "options": ["A. 3", "B. 6", "C. 9", "D. 12"], "answer": ["B"], "set": 2}, {"id": 846, "type": "single", "question": "地震发生时，身处高楼，下列选项中正确的自救防护措施是（）。）", "options": ["A. 把靠垫举在头顶，蹲到坚固的桌子下面，护好头部", "B. 立刻向外跑，乘电梯下楼", "C. 蹲到外墙窗户旁躲避，找机会跳楼逃生", "D. 躲到吊柜下方"], "answer": ["A"], "set": 2}, {"id": 847, "type": "single", "question": "（）是指与不愉快的情感体验相比较，占相对优势的愉快体验，是个体对生活的一个总体、概括评价。）", "options": ["A. 情感平衡", "B. 生活满意度", "C. 情感评价", "D. 体验平衡"], "answer": ["A"], "set": 2}, {"id": 848, "type": "single", "question": "把椅子和灯泡的发热属性结合，可以设计出局部加热的保健椅，如按摩椅。这是（）。）", "options": ["A. 接近联想", "B. 强制联想", "C. 对比联想", "D. 相似联想"], "answer": ["B"], "set": 2}, {"id": 849, "type": "single", "question": "在引起幸福感的需要中，与（）有关的需要，是指个人感觉到自己有能力控制自己周围环境或生活状态时。）", "options": ["A. 稳定感", "B. 安全感", "C. 控制感", "D. 能力感"], "answer": ["C"], "set": 2}, {"id": 850, "type": "single", "question": "创造过程中的（）包含着个人过去受的教育和由解决问题的经验形成的认识能力，也包括对资料的选择、处理和解决的策略。）", "options": ["A. 准备期", "B. 酝酿期", "C. 明朗期", "D. 验证期"], "answer": ["A"], "set": 2}, {"id": 851, "type": "single", "question": "你在宿舍上网，突然电源线路着火，接下来应该（）。）", "options": ["A. 打开房门呼喊“着火”，火速离开现场", "B. 马上切断电源，看火势较大，就在宿舍内等待消防员的救援", "C. 马上切断电源，用灭火器灭火", "D. 开窗呼救，提醒大家撤离"], "answer": ["C"], "set": 2}, {"id": 852, "type": "single", "question": "（）主要是指个体根据自己设定的标准对其生活质量所作的整体评价。）", "options": ["A. 主观幸福感", "B. 生活满意度", "C. 情感平衡性", "D. 主观生活满意度"], "answer": ["A"], "set": 2}, {"id": 853, "type": "multi", "question": "培养发散思维与收敛思维的训练题包括（）。）", "options": ["A. 一物多用", "B. 一题多解", "C. 判断否定", "D. 职业象征"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 854, "type": "multi", "question": "联想的方法一般是（）。）", "options": ["A. 对比联想", "B. 相似联想", "C. 接近联想", "D. 强制联想"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 855, "type": "multi", "question": "心理危机干预的原则包括（）。）", "options": ["A. 迅速确定要干预的问题，强调以目前的问题为主，并立即采取相应措施", "B. 必须有其家人或朋友参加危机干预", "C. 鼓励自信，不要让当事人产生依赖心", "D. 把心理危机作为心理问题处理，而不要作为疾病进行处理"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 856, "type": "multi", "question": "创造性思维的类型包括（）。）", "options": ["A. 抽象思维与形象思维", "B. 发散思维与集中思维", "C. 正向思维与逆向思维", "D. 求同思维与求异思维"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 857, "type": "multi", "question": "西方心理学家认为，智力是人们在认识活动中发展起来的，是由（）方面的因素相互作用的产物。）", "options": ["A. 先天素质", "B. 营养物质", "C. 环境教育", "D. 个人努力"], "answer": ["A", "C", "D"], "set": 2}, {"id": 858, "type": "truefalse", "question": "任何人都有创造潜能，但必须通过自我完善和自我教育来完善自身个性后才能发现和开发自己的创造潜能。）", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 859, "type": "truefalse", "question": "当人们从事创造性工作时，他们的动机是目标中心的，是内在的。）", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 860, "type": "truefalse", "question": "美国心理学家吉尔福特首先对“创造力“展开了研究，被认为是创造学的创始人。）", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 861, "type": "truefalse", "question": "处于18-25岁青年后期的大学生，创造力发展达到最活跃时期，但尚未达到一生创造力的最高峰。）", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 862, "type": "truefalse", "question": "生命的自然属性是指人的生命在生物学和生理学方面的特点，即人的生理构造和自然本能。）", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 863, "type": "single", "question": "有的心理学家把青年期形容为“疾风怒涛”时期，处于这个时期的个体的情绪往往表现得（）。（", "options": ["A. 慢而强烈", "B. 快而强烈", "C. 慢而持久", "D. 快而持久"], "answer": ["B"], "set": 2}, {"id": 864, "type": "single", "question": "（）说：成功是98%的汗水加2%的天才，而乐观是你坚持下去的动力。（", "options": ["A. 迈克·诺克", "B. 霍华德·斯蒂文斯", "C. 汉斯·塞利", "D. 麦德逊·杰梅森"], "answer": ["B"], "set": 2}, {"id": 865, "type": "single", "question": "（）适宜校对、打字、检察员、化验员、机要秘书等工作。（", "options": ["A. 多血质", "B. 黏液质", "C. 抑郁质", "D. 胆汁质"], "answer": ["C"], "set": 2}, {"id": 866, "type": "single", "question": "当我们吃到不适的食物或看到不适的事物时，会产生厌恶感。这是情绪的（）功能。（", "options": ["A. 自我保护", "B. 信号", "C. 社会适应", "D. 动机"], "answer": ["A"], "set": 2}, {"id": 867, "type": "single", "question": "（）适宜会计、保育员、播音员等工作。（", "options": ["A. 多血质", "B. 黏液质", "C. 抑郁质", "D. 胆汁质"], "answer": ["B"], "set": 2}, {"id": 868, "type": "single", "question": "研究表明，（）的安全依恋型孩子有较好的同伴关系，青少年时乐于与父母以外的人交往，形成良好的同伴关系和师生关系，较少有社交焦虑，成年期婚姻质量较高。（", "options": ["A. 89%", "B. 79%", "C. 69%", "D. 59%"], "answer": ["D"], "set": 2}, {"id": 869, "type": "single", "question": "认为事情根本没有发生，以逃避自己心理上受到的刺激、不安和痛苦。这是心理防御方式中的（）。（", "options": ["A. 冷漠", "B. 忽略", "C. 遗忘", "D. 否认"], "answer": ["D"], "set": 2}, {"id": 870, "type": "single", "question": "有活力、乐观、爱冲动、易变化、易兴奋、敢作敢为、不宁静等表现，这是（）的特征。（", "options": ["A. 胆汁质", "B. 多血质", "C. 黏液质", "D. 抑郁质"], "answer": ["A"], "set": 2}, {"id": 871, "type": "single", "question": "一个性格外向的大学生不仅在家中非常活跃，而且在班级活动中也表现出积极主动的一面。这是人格的（）。（", "options": ["A. 主体性", "B. 稳定性", "C. 统合性", "D. 整体性"], "answer": ["B"], "set": 2}, {"id": 872, "type": "single", "question": "“不断获得新知识和探索未知，创造性地面对社会”，这是“五因素人格”模型理论中的（）。（", "options": ["A. 未知性", "B. 探索性", "C. 创新性", "D. 开放性"], "answer": ["D"], "set": 2}, {"id": 873, "type": "multi", "question": "影响人格形成的因素包括（）。（", "options": ["A. 自然环境因素", "B. 生物学遗传因素", "C. 社会环境因素", "D. 自我调控因素"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 874, "type": "multi", "question": "焦虑可以划分为（）。（", "options": ["A. 精神性焦虑", "B. 神经性焦虑", "C. 现实性焦虑", "D. 道德性焦虑"], "answer": ["B", "C", "D"], "set": 2}, {"id": 875, "type": "multi", "question": "当代大学生健全人格的基本特征包括（）。（", "options": ["A. 人格素质和身体素质相协调", "B. 人格自身内部及外部具有多方面的和谐", "C. 人格具有自身的统一性与完整性", "D. 人格智能与活动能力发展的全面性"], "answer": ["B", "C", "D"], "set": 2}, {"id": 876, "type": "multi", "question": "情绪是一种由客观现实与人的需要相互作用而产生的整合性心理过程，包含（）成分。（", "options": ["A. 体验", "B. 生理", "C. 表情", "D. 躯体"], "answer": ["A", "B", "C"], "set": 2}, {"id": 877, "type": "multi", "question": "根据某种体液在人体内占优势而将人的气质分为（）。（", "options": ["A. 多血质", "B. 黏液质", "C. 胆汁质", "D. 抑郁质"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 878, "type": "truefalse", "question": "“井无压力不出油，人无压力轻飘飘”，说明适度的压力是有用的。（", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 879, "type": "truefalse", "question": "在日常生活中，大多数人都表现为只包括了一种气质类型的鲜明气质特点，很少表现出混合了多种气质类型的特点。（", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 880, "type": "truefalse", "question": "汉斯·塞利认为，压力是身体对需求的一般反应，只有不愉快才依赖于压力，愉快并不依赖于压力。（", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 881, "type": "truefalse", "question": "心理学家认为，双生子的研究是研究人格遗传因素的最佳方法。（", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 882, "type": "truefalse", "question": "恐惧是企图摆脱、逃避某种危险情景时所产生的体验。（", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 883, "type": "single", "question": "当个体感觉自己的安全正受到威胁，他会体验到（）。", "options": ["A. 焦虑", "B. 烦躁", "C. 沮丧", "D. 怨恨"], "answer": ["A"], "set": 2}, {"id": 884, "type": "single", "question": "据调查，在大学生中最多的消极情绪是（）。", "options": ["A. 孤独", "B. 郁闷", "C. 纠结", "D. 焦虑"], "answer": ["B"], "set": 2}, {"id": 885, "type": "single", "question": "《水浒传》里的豹子头林冲身负血海深仇，尚能忍耐持久，几经挫折，终于逼上梁山，说明他是（）。", "options": ["A. 胆汁质", "B. 多血质", "C. 黏液质", "D. 抑郁质"], "answer": ["C"], "set": 2}, {"id": 886, "type": "single", "question": "（）持续不断地把过分的期望值加在自己身上，容易形成拖沓、低成就、负罪感和失败感、犹豫不决和低自尊，还可能出现情绪、饮食失调问题。", "options": ["A. A型人格", "B. B型人格", "C. 内在的完美主义者", "D. 外在的完美主义者"], "answer": ["C"], "set": 2}, {"id": 887, "type": "single", "question": "《红楼梦》里的林黛玉多愁善感、弱不禁风，说明她是（）。", "options": ["A. 胆汁质", "B. 多血质", "C. 黏液质", "D. 抑郁质"], "answer": ["D"], "set": 2}, {"id": 888, "type": "single", "question": "遭受挫折后改变不被社会所公允和接纳的动机行为，导向崇高的方向，将自己的痛苦通过合乎社会伦理道德的方式表现出来，这是心理防御方式中的（）。", "options": ["A. 推诿", "B. 升华", "C. 补偿", "D. 转向"], "answer": ["B"], "set": 2}, {"id": 889, "type": "single", "question": "事情来得混乱，个体感觉自己不能掌握，则会体验到（）。", "options": ["A. 哀伤", "B. 怨恨", "C. 烦躁", "D. 郁闷"], "answer": ["C"], "set": 2}, {"id": 890, "type": "single", "question": "善于社交、开朗、健谈、敏感、随便、活跃、关心自由等表现，这是（）的特征。", "options": ["A. 胆汁质", "B. 多血质", "C. 黏液质", "D. 抑郁质"], "answer": ["B"], "set": 2}, {"id": 891, "type": "multi", "question": "沃特·谢弗尔认为压力是个体生理和心理上的唤醒，是由施加的需求导致的。此说包括以下含义：（）。", "options": ["A. 在通常情况下，心率加快、血压上升、肌肉紧张等唤醒，这种情况是不正常的", "B. 压力无处不在，是生活的普遍特征之一，我们不能逃避压力，而应该包容、管理和引导压力", "C. 唤醒调动了人身体的各个器官和组织的功能，在这些生理过程中，思想和感受非常清晰地融合在一起", "D. 在通常情况下，心率加快、血压上升、肌肉紧张等唤醒，这种情况是正常的，无所谓好与坏，是中性的"], "answer": ["B", "C", "D", "D"], "set": 2}, {"id": 892, "type": "multi", "question": "挫折的含义包括（）。", "options": ["A. 挫折情景", "B. 挫折体验", "C. 挫折认知", "D. 挫折反应"], "answer": ["A", "C", "D"], "set": 2}, {"id": 893, "type": "multi", "question": "在学校中，对学生人格产生影响的元素有（）。", "options": ["A. 教师", "B. 班集体", "C. 同学", "D. 同伴"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 894, "type": "truefalse", "question": "生态环境、气候条件、空间拥挤程度等等自然环境因素不会对人格产生影响。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 895, "type": "truefalse", "question": "在成人身上，气质和性格往往是有机交织在一起的，往往很难把气质和性格严格区分开来。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 896, "type": "truefalse", "question": "物理的、化学的、生物的刺激物，如过高的温度、微生物、变质食物、酸咸辣刺激等等属于压力源学说中的生理压力源。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 897, "type": "single", "question": "在（）家庭气氛中，成员之间的关系相当松懈，或者已经分裂成残缺家庭，成员间漠不关心或很少关心。", "options": ["A. 和谐型", "B. 冲突型", "C. 离散型", "D. 平静型"], "answer": ["C"], "set": 2}, {"id": 898, "type": "single", "question": "受挫后把自己的过失和错误归咎于自身以外的原因以减轻自己的内疚、不安和焦虑。这种心理防御方式是（）。", "options": ["A. 积极的", "B. 消极的", "C. 理智的", "D. 平衡性的"], "answer": ["B"], "set": 2}, {"id": 899, "type": "single", "question": "（）发现，并非是过大的压力导致了个体死亡率的增加，真正导致死亡风险增加的元凶是我们对于压力的认知。", "options": ["A. 塞利", "B. 凯勒", "C. 杰梅森", "D. 诺克"], "answer": ["B"], "set": 2}, {"id": 900, "type": "single", "question": "（）将情绪视为一种能量释放的过程，且伴有特定的体验和表情。", "options": ["A. 认知主义学派", "B. 人本主义学派", "C. 新精神分析学派", "D. 精神分析学派"], "answer": ["C"], "set": 2}, {"id": 901, "type": "single", "question": "通常在智力、气质这些生物学因素相关较大的特征上，（）显得较为重要。", "options": ["A. 遗传因素", "B. 社会环境因素", "C. 自然环境因素", "D. 自我调控因素"], "answer": ["A"], "set": 2}, {"id": 902, "type": "single", "question": "用工政策、企业倒闭、调动、市场转变、住房拥挤等等，这属于（）压力源。", "options": ["A. 人际", "B. 环境", "C. 心理", "D. 社会文化"], "answer": ["B"], "set": 2}, {"id": 903, "type": "single", "question": "在（）阶段，身体自动激活生理资源来保护自身，抵御知觉到的紧张性刺激。", "options": ["A. 警觉反应", "B. 接受", "C. 抵抗", "D. 衰竭"], "answer": ["A"], "set": 2}, {"id": 904, "type": "single", "question": "“压力研究之父”是（）。", "options": ["A. 麦德逊·杰梅森", "B. 凯文·凯勒", "C. 霍温·郝姆斯", "D. 汉斯·塞利"], "answer": ["D"], "set": 2}, {"id": 905, "type": "single", "question": "一个性格外向的大学生不仅在家中非常活跃，而且在班级活动中也表现出积极主动的一面。这是人格的（）。", "options": ["A. 主体性", "B. 稳定性", "C. 统合性", "D. 整体性"], "answer": ["B"], "set": 2}, {"id": 906, "type": "multi", "question": "对压力的应对类型包括（）。", "options": ["A. 积极应对", "B. 消极应对", "C. 通过改变外在环境（物理环境和社会环境）去应对", "D. 改变自我去应对"], "answer": ["C", "D"], "set": 2}, {"id": 907, "type": "multi", "question": "以下属于平衡性防御方式的是（）。", "options": ["A. 文饰", "B. 认同", "C. 宣泄和解脱", "D. 否认"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 908, "type": "multi", "question": "气质的分类方法有（）。", "options": ["A. 体型说", "B. 血液说", "C. 体液说", "D. 发型说"], "answer": ["A", "B", "C"], "set": 2}, {"id": 909, "type": "multi", "question": "激情的特点是（）。", "options": ["A. 强烈的", "B. 短暂的", "C. 具有渲染性的", "D. 具有爆发性的"], "answer": ["A", "B", "D", "B", "D"], "set": 2}, {"id": 910, "type": "truefalse", "question": "在学校环境中，主要是老师对学生的人格发展起着导向作用，同伴群体之间彼此不会影响。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 911, "type": "truefalse", "question": "情绪外周学说认为，使人激动的外部事件所引起的身体变化是情绪产生的直接原因，因而可通过调节生理活动进一步改变情绪过程。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 912, "type": "truefalse", "question": "性格在一定程度上可以掩盖或改造气质，使气质的消极因素受到抑制，积极因素得到发展。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 913, "type": "truefalse", "question": "从一种语言环境或文化背景到另一种语言环境或文化背景所产生的压力是由社会压力源所引起的。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 914, "type": "single", "question": "在高层学生宿舍居住时遇到地震，下列避震方法错误的是（）。", "options": ["A. 迅速离开电梯", "B. 就近躲在床和桌子下面", "C. 立即躲藏到阳台上", "D. 迅速躲到跨度小的建筑空间"], "answer": ["C"], "set": 2}, {"id": 915, "type": "single", "question": "（）是指突然迸发的一种意想不到的灵气和无法预料的感受。", "options": ["A. 灵感", "B. 顿悟", "C. 启迪", "D. 潜意识"], "answer": ["A"], "set": 2}, {"id": 916, "type": "single", "question": "（）认为，生命是世界的绝对的、无限的本原，它跟物质和意识不同，是积极地、多样地、永恒地运动着的。生命不能借助于感觉或逻辑思维来认识，只能靠知觉或体验来把握。", "options": ["A. 生命哲学", "B. 生物化学", "C. 生物学", "D. 心理学"], "answer": ["A"], "set": 2}, {"id": 917, "type": "single", "question": "（）在于对两类不同的对象进行比较，根据已知的相似属性，来推论其他属性的相似，从而发现事物之间的联系或相似之处。", "options": ["A. 归纳推理", "B. 类比推理", "C. 求同思维", "D. 求异思维"], "answer": ["B"], "set": 2}, {"id": 918, "type": "single", "question": "发生火灾的时候，应该（）。", "options": ["A. 按照安全出口的指示方向逃生", "B. 就地趴下来就行了", "C. 向人员多的地方逃生", "D. 向着与着火方向相反的方向逃生"], "answer": ["A"], "set": 2}, {"id": 919, "type": "single", "question": "（）认为，一切其他东西或是幸福的必然附属品，或是为幸福的本性所需的有用的手段。", "options": ["A. 包尔生", "B. 弗洛姆", "C. 洛克", "D. 亚里士多德"], "answer": ["D"], "set": 2}, {"id": 920, "type": "single", "question": "（）又称为顿悟期或灵感期。", "options": ["A. 准备期", "B. 酝酿期", "C. 明朗期", "D. 验证期"], "answer": ["C"], "set": 2}, {"id": 921, "type": "single", "question": "多向的、立体的和开放的思维是（）。", "options": ["A. 正向思维", "B. 逆向思维", "C. 发散思维", "D. 集中思维"], "answer": ["C"], "set": 2}, {"id": 922, "type": "multi", "question": "心理危机干预的原则包括（）。", "options": ["A. 迅速确定要干预的问题，强调以目前的问题为主，并立即采取相应措施", "B. 必须有其家人或朋友参加危机干预", "C. 鼓励自信，不要让当事人产生依赖心", "D. 把心理危机作为心理问题处理，而不要作为疾病进行处理"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 923, "type": "multi", "question": "社会规范性生存原则指的是（）。", "options": ["A. 弘扬爱国主义、遵守社会规范和职业道德", "B. 提高社会伦理道德水平", "C. 提高生存技能和解决问题的能力", "D. 践行见义勇为原则"], "answer": ["A", "B", "D"], "set": 2}, {"id": 924, "type": "multi", "question": "培养大学生创造力的情境因素包括（）。", "options": ["A. 提供创造的环境与条件", "B. 解除专业的束缚与紧张的压力", "C. 集体气氛与社会创造力", "D. 培养自己独立的个性"], "answer": ["A", "B", "C"], "set": 2}, {"id": 925, "type": "multi", "question": "培养发散思维与收敛思维的训练题包括（）。", "options": ["A. 一物多用", "B. 一题多解", "C. 判断否定", "D. 职业象征"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 926, "type": "truefalse", "question": "阿尔伯特·班杜拉于1977年提出了自我效能概念。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 927, "type": "truefalse", "question": "高层次的自爱的外在表现主要指向自己。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 928, "type": "truefalse", "question": "创造的过程最早于1962年提出。", "options": ["对", "错"], "answer": ["错"], "set": 2}, {"id": 929, "type": "truefalse", "question": "创造的核心因素是创造性思维。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 930, "type": "single", "question": "火灾现场不正确的逃生方法是（）。", "options": ["A. 用湿毛巾捂住口鼻", "B. 披上用水浸湿的衣物向安全出口逃离", "C. 乘坐电梯迅速逃离现场", "D. 从疏散楼梯撤离"], "answer": ["C"], "set": 2}, {"id": 931, "type": "single", "question": "经过对一个问题苦思不解，放松紧张的逻辑思维，从偶然情境给予的启发中产生了顿悟现象，这是处于创造过程的（）。", "options": ["A. 准备期", "B. 酝酿期", "C. 明朗期", "D. 验证期"], "answer": ["C"], "set": 2}, {"id": 932, "type": "single", "question": "“豁然开朗”、“茅塞顿开”、“灵机一动”，这些属于（）。", "options": ["A. 启示", "B. 顿悟", "C. 意识", "D. 信息启迪"], "answer": ["B"], "set": 2}, {"id": 933, "type": "single", "question": "生命的（）是生命活动对自身的存在和发展的满足，主要表现为生命对自身物质与精神需要的满足程度。", "options": ["A. 社会价值", "B. 心理属性", "C. 精神属性", "D. 自我价值"], "answer": ["D"], "set": 2}, {"id": 934, "type": "single", "question": "马斯洛在其需要层次理论中最早对（）进行描述。", "options": ["A. 自信", "B. 自爱", "C. 自尊", "D. 自立"], "answer": ["A"], "set": 2}, {"id": 935, "type": "single", "question": "当我们在坠落的电梯中时，要保持冷静，做好防护措施，下面方法正确的是（）。", "options": ["A. 双手护住头部，就地躺下", "B. 背部紧贴电梯内壁，膝盖弯曲，脚尖踮起，吸气", "C. 手抱头，背部紧靠电梯内部坐下", "D. 双手抱头，在电梯中央蹲下"], "answer": ["B"], "set": 2}, {"id": 936, "type": "multi", "question": "以下属于生命价值实现途径的是（）。", "options": ["A. 加强生命教育，树立正确的生命观", "B. 加强心理健康教育，不断健全人格", "C. 加强挫折教育，走出生命困顿", "D. 积极参与校园文化活动，树立正确的生命态度"], "answer": ["A", "B", "C", "D"], "set": 2}, {"id": 937, "type": "multi", "question": "西方哲学史上的主要幸福观包括（）。", "options": ["A. 快乐主义幸福观", "B. 完善论幸福观", "C. 实现论幸福观", "D. 享乐主义幸福观"], "answer": ["A", "B"], "set": 2}, {"id": 938, "type": "truefalse", "question": "每个人身上都含有23对染色体，内部包含着3万-5万个不同的基因。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 939, "type": "truefalse", "question": "智力结构的核心是思维力。", "options": ["对", "错"], "answer": ["对"], "set": 2}, {"id": 940, "type": "truefalse", "question": "想象力，是人脑把感知过的形象进行加工而产生新形象的能力，在智力结构起到先导作用。", "options": ["对", "错"], "answer": ["错"], "set": 2}];
+</script>
+<script>
+// ===== State =====
+const STATE = {
+  currentTab: 'practice',
+  // Practice mode
+  practiceFilter: 'all',  // 'all' | 'single' | 'multi' | 'truefalse'
+  practiceSearch: '',
+  practiceIndex: 0,
+  practiceShown: false,   // answer revealed?
+  practiceRandom: false,
+  // Quiz mode
+  quizQuestions: [],
+  quizAnswers: {},
+  quizSubmitted: false,
+  quizTimer: 0,
+  quizTimerInterval: null,
+  quizCount: 20,
+  quizFilter: 'all',
+  // Browse
+  browseFilter: 'all',
+  browseSearch: '',
+  // History (persisted in localStorage)
+  history: {},
+};
+
+// Load history from localStorage
+try {
+  const saved = localStorage.getItem('mental_health_quiz_history');
+  if (saved) STATE.history = JSON.parse(saved);
+} catch(e) {}
+
+function saveHistory() {
+  localStorage.setItem('mental_health_quiz_history', JSON.stringify(STATE.history));
+}
+
+function recordAnswer(qid, userAnswer, isCorrect) {
+  if (!STATE.history[qid]) STATE.history[qid] = { correct: 0, total: 0 };
+  STATE.history[qid].total++;
+  if (isCorrect) STATE.history[qid].correct++;
+  saveHistory();
+  updateHeaderStats();
+}
+
+function getFilteredQuestions(filter, search) {
+  let qs = QUESTION_BANK;
+  if (filter === 'single') qs = qs.filter(q => q.type === 'single');
+  if (filter === 'multi') qs = qs.filter(q => q.type === 'multi');
+  if (filter === 'truefalse') qs = qs.filter(q => q.type === 'truefalse');
+  if (search.trim()) {
+    const s = search.trim().toLowerCase();
+    qs = qs.filter(q => q.question.toLowerCase().includes(s) ||
+      q.options.some(o => o.toLowerCase().includes(s)));
+  }
+  return qs;
+}
+
+function updateHeaderStats() {
+  const done = Object.keys(STATE.history).length;
+  document.getElementById('done-count').textContent = done;
+}
+
+// ===== Tab Switching =====
+function switchTab(tab) {
+  STATE.currentTab = tab;
+  document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
+  document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
+
+  ['practice', 'quiz', 'browse', 'stats'].forEach(t => {
+    document.getElementById(`tab-${t}`).classList.add('hidden');
+  });
+  document.getElementById(`tab-${tab}`).classList.remove('hidden');
+
+  if (tab === 'practice') renderPractice();
+  else if (tab === 'quiz') renderQuizSetup();
+  else if (tab === 'browse') renderBrowse();
+  else if (tab === 'stats') renderStats();
+}
+
+// ===== Type Badge =====
+function typeBadge(type) {
+  if (type === 'single') return '<span class="question-badge badge-single">单选题</span>';
+  if (type === 'multi') return '<span class="question-badge badge-multi">多选题</span>';
+  return '<span class="question-badge badge-tf">判断题</span>';
+}
+
+function typeLabel(type) {
+  if (type === 'single') return '单选';
+  if (type === 'multi') return '多选';
+  return '判断';
+}
+
+// ===== Check Answer =====
+function checkAnswer(question, userAnswer) {
+  const correct = question.answer.sort().join(',');
+  const user = [...userAnswer].sort().join(',');
+  return correct === user;
+}
+
+function normalizeAnswer(q, ans) {
+  // For display: normalize different answer formats
+  if (q.type === 'truefalse') return ans;
+  return ans.join(', ');
+}
+
+// ============================================================
+// PRACTICE MODE
+// ============================================================
+function getPracticeQuestions() {
+  return getFilteredQuestions(STATE.practiceFilter, STATE.practiceSearch);
+}
+
+function getCurrentQuestion() {
+  const qs = getPracticeQuestions();
+  if (qs.length === 0) return null;
+  let idx = STATE.practiceIndex;
+  if (idx < 0) idx = 0;
+  if (idx >= qs.length) idx = qs.length - 1;
+  return qs[idx];
+}
+
+function renderPractice() {
+  const qs = getPracticeQuestions();
+  const q = getCurrentQuestion();
+  const idx = STATE.practiceIndex;
+
+  let html = '';
+
+  // Filters
+  html += '<div class="card"><div class="filters">';
+  const filters = [
+    ['all', '全部'], ['single', '单选'], ['multi', '多选'], ['truefalse', '判断']
+  ];
+  filters.forEach(([val, label]) => {
+    const active = STATE.practiceFilter === val ? ' active' : '';
+    html += `<button class="filter-btn${active}" onclick="setPracticeFilter('${val}')">${label}</button>`;
+  });
+  html += '<span class="filter-separator"></span>';
+  html += `<input class="search-input" placeholder="🔍 搜索题目..." value="${escHtml(STATE.practiceSearch)}"
+    oninput="setPracticeSearch(this.value)">`;
+  html += `<button class="random-btn" onclick="togglePracticeRandom()">${STATE.practiceRandom ? '📋 顺序' : '🎲 随机'}</button>`;
+  html += '</div>';
+
+  // Progress
+  if (qs.length > 0) {
+    const pct = ((idx + 1) / qs.length * 100).toFixed(1);
+    html += `<div class="progress-bar"><div class="fill" style="width:${pct}%"></div></div>`;
+  }
+
+  if (!q) {
+    html += '<div class="question-list-empty">没有匹配的题目，请调整筛选条件</div>';
+  } else {
+    // Meta
+    html += '<div class="question-meta">';
+    html += typeBadge(q.type);
+    html += `<span class="question-number">第 ${idx + 1} / ${qs.length} 题 · ID: ${q.id}</span>`;
+    html += '</div>';
+
+    // Question text
+    html += `<div class="question-text">${escHtml(q.question)}</div>`;
+
+    // Options
+    html += '<div class="options">';
+    const multiHint = q.type === 'multi' ? ' (多选)' : '';
+    q.options.forEach((opt, oi) => {
+      const letter = String.fromCharCode(65 + oi);
+      html += `<div class="option" data-letter="${letter}" onclick="practiceSelect(this, '${letter}')">${escHtml(opt)}</div>`;
+    });
+    html += '</div>';
+
+    // Answer reveal area
+    html += '<div class="answer-reveal" id="answer-reveal"></div>';
+
+    // Navigation
+    html += '<div class="nav-buttons">';
+    html += `<button class="nav-btn" onclick="practicePrev()" ${idx <= 0 ? 'disabled' : ''}>← 上一题</button>`;
+    html += '<div class="nav-center">';
+    html += `<button class="nav-btn primary" id="btn-reveal" onclick="practiceReveal()">💡 显示答案</button>`;
+    html += '</div>';
+    html += `<button class="nav-btn" onclick="practiceNext()" ${idx >= qs.length - 1 ? 'disabled' : ''}>下一题 →</button>`;
+    html += '</div>';
+  }
+
+  html += '</div>'; // close card
+  document.getElementById('tab-practice').innerHTML = html;
+
+  // Reset state
+  STATE.practiceShown = false;
+  document.getElementById('answer-reveal').classList.remove('show', 'wrong-reveal');
+}
+
+function practiceSelect(el, letter) {
+  if (STATE.practiceShown) return;
+  const q = getCurrentQuestion();
+  if (!q) return;
+
+  if (q.type === 'single' || q.type === 'truefalse') {
+    // Single selection
+    el.parentElement.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+  } else {
+    // Multi selection toggle
+    el.classList.toggle('selected');
+  }
+}
+
+function practiceReveal() {
+  if (STATE.practiceShown) return;
+  const q = getCurrentQuestion();
+  if (!q) return;
+
+  STATE.practiceShown = true;
+  const reveal = document.getElementById('answer-reveal');
+  const options = document.querySelectorAll('#tab-practice .option');
+
+  // Get user's selected answers
+  const selected = [];
+  options.forEach(o => {
+    if (o.classList.contains('selected')) selected.push(o.dataset.letter);
+  });
+
+  // Mark correct/wrong
+  let isCorrect = false;
+  if (selected.length > 0) {
+    isCorrect = checkAnswer(q, selected);
+  }
+
+  options.forEach(o => {
+    const letter = o.dataset.letter;
+    if (q.answer.includes(letter)) {
+      o.classList.add('correct');
+    }
+    if (selected.includes(letter) && !q.answer.includes(letter)) {
+      o.classList.add('wrong');
+    }
+    if (!q.answer.includes(letter)) {
+      o.classList.add('show-correct');
+    }
+  });
+
+  // Show answer text
+  const correctAnswer = normalizeAnswer(q, q.answer);
+  reveal.innerHTML = `<span class="label">✅ 正确答案：${correctAnswer}</span>`;
+  if (selected.length > 0) {
+    if (isCorrect) {
+      reveal.innerHTML += '<span style="color:var(--success);margin-left:8px;">🎉 回答正确！</span>';
+    } else {
+      reveal.innerHTML += `<span style="color:var(--danger);margin-left:8px;">❌ 你的答案：${selected.join(', ') || '未选择'}</span>`;
+      reveal.classList.add('wrong-reveal');
+    }
+    // Record
+    recordAnswer(q.id, selected, isCorrect);
+  }
+  reveal.classList.add('show');
+  document.getElementById('btn-reveal').textContent = '已显示答案';
+  document.getElementById('btn-reveal').disabled = true;
+}
+
+function practicePrev() {
+  STATE.practiceShown = false;
+  if (STATE.practiceRandom) {
+    const qs = getPracticeQuestions();
+    STATE.practiceIndex = Math.floor(Math.random() * qs.length);
+  } else {
+    STATE.practiceIndex--;
+  }
+  renderPractice();
+}
+
+function practiceNext() {
+  STATE.practiceShown = false;
+  if (STATE.practiceRandom) {
+    const qs = getPracticeQuestions();
+    STATE.practiceIndex = Math.floor(Math.random() * qs.length);
+  } else {
+    STATE.practiceIndex++;
+  }
+  renderPractice();
+}
+
+function setPracticeFilter(val) {
+  STATE.practiceFilter = val;
+  STATE.practiceIndex = 0;
+  STATE.practiceShown = false;
+  renderPractice();
+}
+
+function setPracticeSearch(val) {
+  STATE.practiceSearch = val;
+  STATE.practiceIndex = 0;
+  STATE.practiceShown = false;
+  renderPractice();
+}
+
+function togglePracticeRandom() {
+  STATE.practiceRandom = !STATE.practiceRandom;
+  STATE.practiceIndex = 0;
+  STATE.practiceShown = false;
+  renderPractice();
+}
+
+function escHtml(s) {
+  const d = document.createElement('div');
+  d.textContent = s;
+  return d.innerHTML;
+}
+
+// ============================================================
+// QUIZ MODE
+// ============================================================
+function renderQuizSetup() {
+  const total = getFilteredQuestions(STATE.quizFilter, '').length;
+  let html = '<div class="card">';
+  html += '<h3>🏆 答题模式</h3>';
+  html += '<p style="color:var(--text-secondary);margin:12px 0;">从题库中随机抽取题目进行限时答题，检验学习效果。</p>';
+
+  html += '<div class="quiz-setup">';
+  html += '<label>题目类型:</label>';
+  html += `<select onchange="STATE.quizFilter=this.value;renderQuizSetup()">
+    <option value="all" ${STATE.quizFilter==='all'?'selected':''}>全部 (${QUESTION_BANK.length}题)</option>
+    <option value="single" ${STATE.quizFilter==='single'?'selected':''}>单选题 (${QUESTION_BANK.filter(q=>q.type==='single').length}题)</option>
+    <option value="multi" ${STATE.quizFilter==='multi'?'selected':''}>多选题 (${QUESTION_BANK.filter(q=>q.type==='multi').length}题)</option>
+    <option value="truefalse" ${STATE.quizFilter==='truefalse'?'selected':''}>判断题 (${QUESTION_BANK.filter(q=>q.type==='truefalse').length}题)</option>
+  </select>`;
+  html += '<label>题目数量:</label>';
+  html += `<select onchange="STATE.quizCount=parseInt(this.value);renderQuizSetup()">
+    <option value="10" ${STATE.quizCount===10?'selected':''}>10 题</option>
+    <option value="20" ${STATE.quizCount===20?'selected':''}>20 题</option>
+    <option value="30" ${STATE.quizCount===30?'selected':''}>30 题</option>
+    <option value="50" ${STATE.quizCount===50?'selected':''}>50 题</option>
+    <option value="${total}" ${STATE.quizCount===total?'selected':''}>全部 (${total}题)</option>
+  </select>`;
+  html += '</div>';
+
+  html += `<button class="nav-btn primary" onclick="startQuiz()" style="margin-top:12px;">🚀 开始答题</button>`;
+  html += '</div>';
+
+  // If quiz is in progress or submitted, show it
+  if (STATE.quizQuestions.length > 0) {
+    if (STATE.quizSubmitted) {
+      html += renderQuizResults();
+    } else {
+      html += renderQuizQuestions();
+    }
+  }
+
+  document.getElementById('tab-quiz').innerHTML = html;
+}
+
+function startQuiz() {
+  const pool = getFilteredQuestions(STATE.quizFilter, '');
+  const count = Math.min(STATE.quizCount, pool.length);
+  // Shuffle and pick
+  const shuffled = [...pool].sort(() => Math.random() - 0.5);
+  STATE.quizQuestions = shuffled.slice(0, count);
+  STATE.quizAnswers = {};
+  STATE.quizSubmitted = false;
+
+  // Start timer
+  STATE.quizTimer = 0;
+  clearInterval(STATE.quizTimerInterval);
+  STATE.quizTimerInterval = setInterval(() => {
+    STATE.quizTimer++;
+    const el = document.getElementById('quiz-timer');
+    if (el) {
+      const m = Math.floor(STATE.quizTimer / 60);
+      const s = STATE.quizTimer % 60;
+      el.textContent = `⏱ ${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+      if (STATE.quizTimer > 600) el.classList.add('warning');
+    }
+  }, 1000);
+
+  renderQuizQuestions();
+}
+
+function renderQuizQuestions() {
+  let html = '';
+  const total = STATE.quizQuestions.length;
+  const answered = Object.keys(STATE.quizAnswers).length;
+
+  // Timer
+  html += `<div class="card"><div class="quiz-timer" id="quiz-timer">⏱ 00:00</div>`;
+  // Progress
+  html += `<div class="progress-bar"><div class="fill" style="width:${(answered/total*100).toFixed(0)}%"></div></div>`;
+  html += `<div style="text-align:center;color:var(--text-secondary);margin-bottom:12px;">已答 ${answered} / ${total} 题</div>`;
+
+  // Questions
+  STATE.quizQuestions.forEach((q, qi) => {
+    html += `<div class="question-meta" style="margin-top:${qi>0?'24':'0'}">`;
+    html += `${typeBadge(q.type)} <span class="question-number">第 ${qi+1} 题</span>`;
+    html += '</div>';
+    html += `<div class="question-text">${escHtml(q.question)}</div>`;
+    html += '<div class="options">';
+    q.options.forEach((opt, oi) => {
+      const letter = String.fromCharCode(65 + oi);
+      const userAns = STATE.quizAnswers[qi] || [];
+      const selected = userAns.includes(letter) ? ' selected' : '';
+      html += `<div class="option${selected}" data-qi="${qi}" data-letter="${letter}"
+        onclick="quizSelect(${qi}, '${letter}', this)">${escHtml(opt)}</div>`;
+    });
+    html += '</div>';
+  });
+
+  html += '<div class="nav-buttons mt-20">';
+  html += `<button class="nav-btn" onclick="resetQuiz()">🔄 重新设置</button>`;
+  html += `<button class="nav-btn primary" onclick="submitQuiz()">📩 提交答案 (${answered}/${total})</button>`;
+  html += '</div></div>';
+
+  document.getElementById('tab-quiz').innerHTML = html;
+
+  // Update timer display
+  const timerEl = document.getElementById('quiz-timer');
+  if (timerEl) {
+    const m = Math.floor(STATE.quizTimer / 60);
+    const s = STATE.quizTimer % 60;
+    timerEl.textContent = `⏱ ${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}`;
+  }
+}
+
+function quizSelect(qi, letter, el) {
+  if (STATE.quizSubmitted) return;
+  const q = STATE.quizQuestions[qi];
+
+  if (!STATE.quizAnswers[qi]) STATE.quizAnswers[qi] = [];
+
+  if (q.type === 'single' || q.type === 'truefalse') {
+    // Clear previous selection
+    STATE.quizAnswers[qi] = [letter];
+    const parent = el.parentElement;
+    parent.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+  } else {
+    // Toggle multi selection
+    const idx = STATE.quizAnswers[qi].indexOf(letter);
+    if (idx >= 0) {
+      STATE.quizAnswers[qi].splice(idx, 1);
+      el.classList.remove('selected');
+    } else {
+      STATE.quizAnswers[qi].push(letter);
+      el.classList.add('selected');
+    }
+  }
+
+  // Update progress
+  const answered = Object.keys(STATE.quizAnswers).length;
+  const total = STATE.quizQuestions.length;
+  const pb = document.querySelector('#tab-quiz .progress-bar .fill');
+  if (pb) pb.style.width = `${(answered/total*100).toFixed(0)}%`;
+  const status = document.querySelector('#tab-quiz div[style]');
+}
+
+function submitQuiz() {
+  if (STATE.quizSubmitted) return;
+  const unanswered = STATE.quizQuestions.length - Object.keys(STATE.quizAnswers).length;
+  if (unanswered > 0) {
+    if (!confirm(`还有 ${unanswered} 题未作答，确定提交吗？`)) return;
+  }
+
+  STATE.quizSubmitted = true;
+  clearInterval(STATE.quizTimerInterval);
+
+  // Score
+  let correct = 0;
+  STATE.quizQuestions.forEach((q, qi) => {
+    const userAns = STATE.quizAnswers[qi] || [];
+    const isCorrect = checkAnswer(q, userAns);
+    if (isCorrect) correct++;
+    recordAnswer(q.id, userAns, isCorrect);
+  });
+
+  renderQuizSetup();
+}
+
+function renderQuizResults() {
+  const total = STATE.quizQuestions.length;
+  let correct = 0;
+  STATE.quizQuestions.forEach((q, qi) => {
+    const userAns = STATE.quizAnswers[qi] || [];
+    if (checkAnswer(q, userAns)) correct++;
+  });
+  const pct = total > 0 ? (correct / total * 100).toFixed(1) : 0;
+  const scoreClass = pct >= 80 ? 'good' : (pct >= 60 ? 'ok' : 'bad');
+  const m = Math.floor(STATE.quizTimer / 60);
+  const s = STATE.quizTimer % 60;
+
+  let html = '<div class="card results">';
+  html += `<div class="score ${scoreClass}">${pct}%</div>`;
+  html += `<p style="color:var(--text-secondary)">${pct >= 80 ? '🎉 太棒了！' : (pct >= 60 ? '👍 还不错！' : '💪 继续加油！')}</p>`;
+  html += '<div class="detail">';
+  html += `<div class="detail-item"><div class="num" style="color:var(--success)">${correct}</div><div class="lbl">正确</div></div>`;
+  html += `<div class="detail-item"><div class="num" style="color:var(--danger)">${total - correct}</div><div class="lbl">错误</div></div>`;
+  html += `<div class="detail-item"><div class="num">${m.toString().padStart(2,'0')}:${s.toString().padStart(2,'0')}</div><div class="lbl">用时</div></div>`;
+  html += '</div>';
+
+  // Review incorrect
+  const incorrect = [];
+  STATE.quizQuestions.forEach((q, qi) => {
+    const userAns = STATE.quizAnswers[qi] || [];
+    if (!checkAnswer(q, userAns)) incorrect.push({q, qi, userAns});
+  });
+
+  if (incorrect.length > 0) {
+    html += '<h3 style="margin-top:24px;text-align:left;">📝 错题回顾</h3>';
+    incorrect.forEach(({q, qi, userAns}) => {
+      html += `<div style="text-align:left;margin-top:16px;padding:12px;background:#fef2f2;border-radius:8px;">`;
+      html += `<strong>${qi+1}.</strong> ${typeBadge(q.type)} ${escHtml(q.question)}`;
+      html += '<div style="margin-top:8px;">';
+      html += `<span style="color:var(--danger);">你的答案: ${userAns.length ? userAns.join(', ') : '未作答'}</span>`;
+      html += `<span style="color:var(--success);margin-left:12px;">正确答案: ${normalizeAnswer(q, q.answer)}</span>`;
+      html += '</div></div>';
+    });
+  }
+
+  html += '<div class="nav-buttons mt-20">';
+  html += `<button class="nav-btn primary" onclick="startQuiz()">🔄 再来一组</button>`;
+  html += `<button class="nav-btn" onclick="resetQuiz()">⚙️ 重新设置</button>`;
+  html += '</div></div>';
+
+  return html;
+}
+
+function resetQuiz() {
+  STATE.quizQuestions = [];
+  STATE.quizAnswers = {};
+  STATE.quizSubmitted = false;
+  STATE.quizTimer = 0;
+  clearInterval(STATE.quizTimerInterval);
+  renderQuizSetup();
+}
+
+// ============================================================
+// BROWSE MODE
+// ============================================================
+function renderBrowse() {
+  const qs = getFilteredQuestions(STATE.browseFilter, STATE.browseSearch);
+  let html = '<div class="card"><div class="filters">';
+  const filters = [['all', '全部'], ['single', '单选'], ['multi', '多选'], ['truefalse', '判断']];
+  filters.forEach(([val, label]) => {
+    const active = STATE.browseFilter === val ? ' active' : '';
+    html += `<button class="filter-btn${active}" onclick="setBrowseFilter('${val}')">${label}</button>`;
+  });
+  html += '<span class="filter-separator"></span>';
+  html += `<input class="search-input" placeholder="🔍 搜索题目..." value="${escHtml(STATE.browseSearch)}"
+    oninput="setBrowseSearch(this.value)">`;
+  html += `<span style="font-size:0.85rem;color:var(--text-secondary);margin-left:8px;">共 ${qs.length} 题</span>`;
+  html += '</div>';
+
+  if (qs.length === 0) {
+    html += '<div class="question-list-empty">没有匹配的题目</div>';
+  } else {
+    // Chunk into pages of 50
+    const pageSize = 50;
+    const totalPages = Math.ceil(qs.length / pageSize);
+    let page = STATE.browsePage || 0;
+    if (page >= totalPages) page = 0;
+    STATE.browsePage = page;
+
+    const start = page * pageSize;
+    const end = Math.min(start + pageSize, qs.length);
+
+    for (let i = start; i < end; i++) {
+      const q = qs[i];
+      const hist = STATE.history[q.id];
+      const accuracy = hist && hist.total > 0 ? ` · 正确率 ${(hist.correct/hist.total*100).toFixed(0)}%` : '';
+      html += `<div class="question-list-item" onclick="browseToQuestion(${q.id})">
+        <span class="idx">#${q.id}</span>
+        <span>${typeBadge(q.type)}</span>
+        <span class="preview">${escHtml(q.question)}</span>
+        <span style="font-size:0.8rem;color:var(--text-secondary);white-space:nowrap;">${hist ? hist.correct + '/' + hist.total : '-'}${accuracy}</span>
+      </div>`;
+    }
+
+    // Pagination
+    if (totalPages > 1) {
+      html += '<div class="nav-buttons" style="justify-content:center;">';
+      html += `<button class="nav-btn" onclick="STATE.browsePage=${page-1};renderBrowse()" ${page===0?'disabled':''}>上一页</button>`;
+      html += `<span style="padding:8px;font-size:0.9rem;">${page+1} / ${totalPages}</span>`;
+      html += `<button class="nav-btn" onclick="STATE.browsePage=${page+1};renderBrowse()" ${page>=totalPages-1?'disabled':''}>下一页</button>`;
+      html += '</div>';
+    }
+  }
+  html += '</div>';
+  document.getElementById('tab-browse').innerHTML = html;
+}
+
+function browseToQuestion(id) {
+  // Switch to practice mode and jump to the question
+  const allQs = getFilteredQuestions(STATE.browseFilter, STATE.browseSearch);
+  const idx = allQs.findIndex(q => q.id === id);
+  if (idx >= 0) {
+    STATE.practiceFilter = STATE.browseFilter;
+    STATE.practiceSearch = STATE.browseSearch;
+    STATE.practiceIndex = idx;
+    STATE.practiceShown = false;
+    switchTab('practice');
+  }
+}
+
+function setBrowseFilter(val) {
+  STATE.browseFilter = val;
+  STATE.browsePage = 0;
+  renderBrowse();
+}
+
+function setBrowseSearch(val) {
+  STATE.browseSearch = val;
+  STATE.browsePage = 0;
+  renderBrowse();
+}
+
+// ============================================================
+// STATS MODE
+// ============================================================
+function renderStats() {
+  const doneCount = Object.keys(STATE.history).length;
+  let totalAttempts = 0, totalCorrect = 0;
+  const byType = { single: {c:0,t:0}, multi: {c:0,t:0}, truefalse: {c:0,t:0} };
+
+  for (const [qid, h] of Object.entries(STATE.history)) {
+    totalAttempts += h.total;
+    totalCorrect += h.correct;
+    const q = QUESTION_BANK.find(q => q.id === parseInt(qid));
+    if (q && byType[q.type]) {
+      byType[q.type].c += h.correct;
+      byType[q.type].t += h.total;
+    }
+  }
+
+  const overallPct = totalAttempts > 0 ? (totalCorrect / totalAttempts * 100).toFixed(1) : '-';
+
+  let html = '<div class="stats-grid">';
+  html += `<div class="stat-card total-stat"><div class="stat-num">${doneCount}</div><div class="stat-lbl">已做题数</div></div>`;
+  html += `<div class="stat-card total-stat"><div class="stat-num">${totalAttempts}</div><div class="stat-lbl">总答题次数</div></div>`;
+  html += `<div class="stat-card total-stat"><div class="stat-num">${overallPct}%</div><div class="stat-lbl">总正确率</div></div>`;
+  html += '</div>';
+
+  html += '<div class="stats-grid">';
+  ['single','multi','truefalse'].forEach(type => {
+    const {c, t} = byType[type];
+    const pct = t > 0 ? (c / t * 100).toFixed(1) : '-';
+    html += `<div class="stat-card ${type}-stat"><div class="stat-num">${pct}%</div><div class="stat-lbl">${typeLabel(type)}题正确率 (${c}/${t})</div></div>`;
+  });
+  html += '</div>';
+
+  // Recent history
+  html += '<div class="card"><h3>📜 最近答题记录</h3>';
+  const recent = Object.entries(STATE.history).sort((a,b) => b[1].total - a[1].total).slice(0, 20);
+  if (recent.length === 0) {
+    html += '<p style="color:var(--text-secondary);margin-top:8px;">还没有答题记录，去刷题吧！</p>';
+  } else {
+    recent.forEach(([qid, h]) => {
+      const q = QUESTION_BANK.find(q => q.id === parseInt(qid));
+      if (!q) return;
+      const pct = h.total > 0 ? (h.correct / h.total * 100).toFixed(0) : 0;
+      const color = pct >= 80 ? 'var(--success)' : (pct >= 50 ? 'var(--warning)' : 'var(--danger)');
+      html += `<div class="question-list-item" onclick="STATESwitchToQuestion(${qid})" style="cursor:pointer;">
+        <span style="color:${color};font-weight:700;min-width:36px;">${pct}%</span>
+        <span>${typeBadge(q.type)}</span>
+        <span class="preview">${escHtml(q.question).substring(0, 60)}...</span>
+        <span style="font-size:0.8rem;color:var(--text-secondary);white-space:nowrap;">${h.correct}/${h.total}</span>
+      </div>`;
+    });
+  }
+  html += '</div>';
+
+  // Reset button
+  html += '<div class="text-center mt-16">';
+  html += '<button class="nav-btn" onclick="resetStats()" style="color:var(--danger);border-color:var(--danger);">🗑 清除学习记录</button>';
+  html += '</div>';
+
+  document.getElementById('tab-stats').innerHTML = html;
+}
+
+function STATSwitchToQuestion(qid) {
+  STATE.practiceFilter = 'all';
+  STATE.practiceSearch = '';
+  const idx = QUESTION_BANK.findIndex(q => q.id === qid);
+  STATE.practiceIndex = idx >= 0 ? idx : 0;
+  STATE.practiceShown = false;
+  switchTab('practice');
+}
+
+function resetStats() {
+  if (confirm('确定要清除所有学习记录吗？此操作不可撤销。')) {
+    STATE.history = {};
+    saveHistory();
+    updateHeaderStats();
+    renderStats();
+  }
+}
+
+// ===== Init =====
+function init() {
+  document.getElementById('total-count').textContent = QUESTION_BANK.length;
+  updateHeaderStats();
+  renderPractice();
+}
+
+// Run
+init();
+</script>
+</body>
+</html>
