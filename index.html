@@ -900,10 +900,7 @@ function renderQuizQuestions() {
 
   html += '<div class="nav-buttons mt-20">';
   html += `<button class="nav-btn" onclick="resetQuiz()">🔄 重新设置</button>`;
-  if (gradedCount < total) {
-    html += `<button class="nav-btn primary" onclick="quizGradeAll()">📩 一键提交全部 (${gradedCount}/${total})</button>`;
-  }
-  html += `<button class="nav-btn" onclick="submitQuizFinal()">📊 查看成绩</button>`;
+  html += `<button class="nav-btn primary" onclick="submitQuizFinal()">📊 查看成绩</button>`;
   html += '</div></div>';
 
   document.getElementById('tab-quiz').innerHTML = html;
@@ -995,10 +992,24 @@ function checkQuizComplete() {
 }
 
 function submitQuizFinal() {
+  // First, auto-grade all remaining ungraded questions
+  let autoGraded = 0;
+  STATE.quizQuestions.forEach((q, qi) => {
+    if (STATE.quizGraded[qi] === undefined) {
+      const userAns = STATE.quizAnswers[qi] || [];
+      if (userAns.length > 0) {
+        const isCorrect = checkAnswer(q, userAns);
+        STATE.quizGraded[qi] = isCorrect;
+        recordAnswer(q.id, userAns, isCorrect);
+        autoGraded++;
+      }
+    }
+  });
+
   const graded = Object.keys(STATE.quizGraded).length;
   const total = STATE.quizQuestions.length;
   if (graded < total) {
-    if (!confirm(`还有 ${total - graded} 题未批改，确定查看成绩吗？`)) return;
+    if (!confirm(`还有 ${total - graded} 题未作答，确定查看成绩吗？`)) return;
   }
 
   STATE.quizSubmitted = true;
