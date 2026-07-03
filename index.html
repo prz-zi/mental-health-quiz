@@ -200,6 +200,23 @@ body {
 .answer-reveal.wrong-reveal { background: #fef2f2; border-color: #fecaca; }
 .answer-reveal .label { font-weight: 600; margin-right: 8px; }
 
+/* ===== Grade Banner ===== */
+.grade-banner { padding: 4px 0; }
+.grade-banner .grade-icon { font-size: 1.5rem; margin-right: 8px; }
+.grade-banner .grade-text { font-size: 1.1rem; font-weight: 700; margin-right: 12px; }
+.grade-correct { background: #ecfdf5 !important; border-color: #6ee7b7 !important; }
+.grade-wrong { background: #fef2f2 !important; border-color: #fca5a5 !important; }
+.grade-compare { margin-top: 8px; display: flex; flex-direction: column; gap: 4px; }
+.grade-row { display: flex; align-items: center; gap: 6px; font-size: 0.95rem; }
+.grade-label { color: var(--text-secondary); }
+.grade-val { font-weight: 700; }
+.wrong-val { color: var(--danger); }
+.correct-val { color: var(--success); }
+
+/* ===== Result Buttons ===== */
+.correct-btn { background: var(--success) !important; border-color: var(--success) !important; color: white !important; }
+.wrong-btn { background: var(--danger) !important; border-color: var(--danger) !important; color: white !important; }
+
 /* ===== Navigation ===== */
 .nav-buttons {
   display: flex;
@@ -537,9 +554,14 @@ function renderPractice() {
     // Question text
     html += `<div class="question-text">${escHtml(q.question)}</div>`;
 
+    // Selection hint
+    const hint = q.type === 'multi'
+      ? '<div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:8px;">💡 点击选项进行多选，选好后提交</div>'
+      : '<div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:8px;">💡 点击选项选择你的答案，然后提交</div>';
+
     // Options
+    html += hint;
     html += '<div class="options">';
-    const multiHint = q.type === 'multi' ? ' (多选)' : '';
     q.options.forEach((opt, oi) => {
       const letter = String.fromCharCode(65 + oi);
       html += `<div class="option" data-letter="${letter}" onclick="practiceSelect(this, '${letter}')">${escHtml(opt)}</div>`;
@@ -553,7 +575,7 @@ function renderPractice() {
     html += '<div class="nav-buttons">';
     html += `<button class="nav-btn" onclick="practicePrev()" ${idx <= 0 ? 'disabled' : ''}>← 上一题</button>`;
     html += '<div class="nav-center">';
-    html += `<button class="nav-btn primary" id="btn-reveal" onclick="practiceReveal()">💡 显示答案</button>`;
+    html += `<button class="nav-btn primary" id="btn-submit" onclick="practiceSubmit()">📝 提交答案</button>`;
     html += '</div>';
     html += `<button class="nav-btn" onclick="practiceNext()" ${idx >= qs.length - 1 ? 'disabled' : ''}>下一题 →</button>`;
     html += '</div>';
@@ -564,7 +586,11 @@ function renderPractice() {
 
   // Reset state
   STATE.practiceShown = false;
-  document.getElementById('answer-reveal').classList.remove('show', 'wrong-reveal');
+  const reveal = document.getElementById('answer-reveal');
+  if (reveal) {
+    reveal.classList.remove('show', 'wrong-reveal', 'grade-correct', 'grade-wrong');
+    reveal.innerHTML = '';
+  }
 }
 
 function practiceSelect(el, letter) {
@@ -582,14 +608,14 @@ function practiceSelect(el, letter) {
   }
 }
 
-function practiceReveal() {
+function practiceSubmit() {
   if (STATE.practiceShown) return;
   const q = getCurrentQuestion();
   if (!q) return;
 
-  STATE.practiceShown = true;
   const reveal = document.getElementById('answer-reveal');
   const options = document.querySelectorAll('#tab-practice .option');
+  const btn = document.getElementById('btn-submit');
 
   // Get user's selected answers
   const selected = [];
@@ -597,12 +623,20 @@ function practiceReveal() {
     if (o.classList.contains('selected')) selected.push(o.dataset.letter);
   });
 
-  // Mark correct/wrong
-  let isCorrect = false;
-  if (selected.length > 0) {
-    isCorrect = checkAnswer(q, selected);
+  // If nothing selected, prompt
+  if (selected.length === 0) {
+    reveal.innerHTML = '<span style="color:var(--warning);">⚠️ 请先选择一个答案再提交</span>';
+    reveal.classList.add('show', 'wrong-reveal');
+    setTimeout(() => {
+      reveal.classList.remove('show', 'wrong-reveal');
+    }, 2000);
+    return;
   }
 
+  STATE.practiceShown = true;
+  const isCorrect = checkAnswer(q, selected);
+
+  // Mark options
   options.forEach(o => {
     const letter = o.dataset.letter;
     if (q.answer.includes(letter)) {
@@ -616,22 +650,40 @@ function practiceReveal() {
     }
   });
 
-  // Show answer text
+  // Show grading result
   const correctAnswer = normalizeAnswer(q, q.answer);
-  reveal.innerHTML = `<span class="label">✅ 正确答案：${correctAnswer}</span>`;
-  if (selected.length > 0) {
-    if (isCorrect) {
-      reveal.innerHTML += '<span style="color:var(--success);margin-left:8px;">🎉 回答正确！</span>';
-    } else {
-      reveal.innerHTML += `<span style="color:var(--danger);margin-left:8px;">❌ 你的答案：${selected.join(', ') || '未选择'}</span>`;
-      reveal.classList.add('wrong-reveal');
-    }
-    // Record
-    recordAnswer(q.id, selected, isCorrect);
+  const userAnswer = selected.join(', ');
+
+  if (isCorrect) {
+    reveal.innerHTML = `
+      <div class="grade-banner correct-banner">
+        <span class="grade-icon">🎉</span>
+        <span class="grade-text">回答正确！</span>
+        <span style="font-size:0.9rem;color:var(--success);">答案：${correctAnswer}</span>
+      </div>`;
+    reveal.className = 'answer-reveal show grade-correct';
+  } else {
+    reveal.innerHTML = `
+      <div class="grade-banner wrong-banner">
+        <span class="grade-icon">❌</span>
+        <span class="grade-text">回答错误</span>
+        <div class="grade-compare">
+          <div class="grade-row"><span class="grade-label">你的答案：</span><span class="grade-val wrong-val">${userAnswer}</span></div>
+          <div class="grade-row"><span class="grade-label">正确答案：</span><span class="grade-val correct-val">${correctAnswer}</span></div>
+        </div>
+      </div>`;
+    reveal.className = 'answer-reveal show grade-wrong';
   }
-  reveal.classList.add('show');
-  document.getElementById('btn-reveal').textContent = '已显示答案';
-  document.getElementById('btn-reveal').disabled = true;
+
+  // Update button
+  btn.textContent = isCorrect ? '✅ 正确！' : '❌ 错误';
+  btn.className = isCorrect ? 'nav-btn correct-btn' : 'nav-btn wrong-btn';
+  btn.disabled = true;
+  btn.style.opacity = '0.85';
+  btn.style.cursor = 'default';
+
+  // Record
+  recordAnswer(q.id, selected, isCorrect);
 }
 
 function practicePrev() {
