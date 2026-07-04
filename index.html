@@ -412,6 +412,7 @@ body {
   <!-- Tabs -->
   <div class="tabs">
     <button class="tab active" data-tab="practice" onclick="switchTab('practice')">📝 刷题模式</button>
+    <button class="tab" data-tab="wrong" onclick="switchTab('wrong')">🔄 错题重刷</button>
     <button class="tab" data-tab="quiz" onclick="switchTab('quiz')">🏆 答题模式</button>
     <button class="tab" data-tab="browse" onclick="switchTab('browse')">📋 题库浏览</button>
     <button class="tab" data-tab="stats" onclick="switchTab('stats')">📊 学习统计</button>
@@ -419,6 +420,7 @@ body {
 
   <!-- Tab content containers -->
   <div id="tab-practice"></div>
+  <div id="tab-wrong" class="hidden"></div>
   <div id="tab-quiz" class="hidden"></div>
   <div id="tab-browse" class="hidden"></div>
   <div id="tab-stats" class="hidden"></div>
@@ -451,6 +453,9 @@ const STATE = {
   browseSearch: '',
   // History (persisted in localStorage)
   history: {},
+  // Wrong questions mode
+  wrongIndex: 0,
+  wrongShown: false,
 };
 
 // Load history from localStorage
@@ -471,11 +476,23 @@ function recordAnswer(qid, userAnswer, isCorrect) {
   updateHeaderStats();
 }
 
+function getWrongQuestionIds() {
+  // Return IDs of questions the user has answered wrong at least once
+  return Object.entries(STATE.history)
+    .filter(([, h]) => h.total > h.correct)
+    .map(([qid]) => parseInt(qid));
+}
+
 function getFilteredQuestions(filter, search) {
   let qs = QUESTION_BANK;
-  if (filter === 'single') qs = qs.filter(q => q.type === 'single');
-  if (filter === 'multi') qs = qs.filter(q => q.type === 'multi');
-  if (filter === 'truefalse') qs = qs.filter(q => q.type === 'truefalse');
+  if (filter === 'wrong') {
+    const wrongIds = new Set(getWrongQuestionIds());
+    qs = qs.filter(q => wrongIds.has(q.id));
+  } else {
+    if (filter === 'single') qs = qs.filter(q => q.type === 'single');
+    if (filter === 'multi') qs = qs.filter(q => q.type === 'multi');
+    if (filter === 'truefalse') qs = qs.filter(q => q.type === 'truefalse');
+  }
   if (search.trim()) {
     const s = search.trim().toLowerCase();
     qs = qs.filter(q => q.question.toLowerCase().includes(s) ||
@@ -495,12 +512,13 @@ function switchTab(tab) {
   document.querySelectorAll('.tab').forEach(t => t.classList.remove('active'));
   document.querySelector(`[data-tab="${tab}"]`).classList.add('active');
 
-  ['practice', 'quiz', 'browse', 'stats'].forEach(t => {
+  ['practice', 'wrong', 'quiz', 'browse', 'stats'].forEach(t => {
     document.getElementById(`tab-${t}`).classList.add('hidden');
   });
   document.getElementById(`tab-${tab}`).classList.remove('hidden');
 
   if (tab === 'practice') renderPractice();
+  else if (tab === 'wrong') renderWrong();
   else if (tab === 'quiz') renderQuizSetup();
   else if (tab === 'browse') renderBrowse();
   else if (tab === 'stats') renderStats();
@@ -588,7 +606,7 @@ function renderPractice() {
   // Filters
   html += '<div class="card"><div class="filters">';
   const filters = [
-    ['all', '全部'], ['single', '单选'], ['multi', '多选'], ['truefalse', '判断']
+    ['all', '全部'], ['single', '单选'], ['multi', '多选'], ['truefalse', '判断'], ['wrong', '📝 错题']
   ];
   filters.forEach(([val, label]) => {
     const active = STATE.practiceFilter === val ? ' active' : '';
@@ -816,6 +834,7 @@ function renderQuizSetup() {
     <option value="single" ${STATE.quizFilter==='single'?'selected':''}>单选题 (${QUESTION_BANK.filter(q=>q.type==='single').length}题)</option>
     <option value="multi" ${STATE.quizFilter==='multi'?'selected':''}>多选题 (${QUESTION_BANK.filter(q=>q.type==='multi').length}题)</option>
     <option value="truefalse" ${STATE.quizFilter==='truefalse'?'selected':''}>判断题 (${QUESTION_BANK.filter(q=>q.type==='truefalse').length}题)</option>
+    <option value="wrong" ${STATE.quizFilter==='wrong'?'selected':''}>🔄 错题重刷 (${getWrongQuestionIds().length}题)</option>
   </select>`;
   html += '<label>题目数量:</label>';
   html += `<select onchange="STATE.quizCount=parseInt(this.value);renderQuizSetup()">
@@ -1121,12 +1140,171 @@ function resetQuiz() {
 }
 
 // ============================================================
+// WRONG QUESTIONS RETRY MODE
+// ============================================================
+function renderWrong() {
+  const qs = getFilteredQuestions('wrong', '');
+  const wrongCount = qs.length;
+
+  let html = '<div class="card">';
+
+  // Header
+  html += '<div style="text-align:center;padding:16px 0;">';
+  html += '<h2 style="margin:0 0 8px 0;">🔄 错题重刷</h2>';
+  if (wrongCount === 0) {
+    html += '<p style="color:var(--success);font-size:1.1rem;">🎉 太棒了！你没有错题，所有已做题都已掌握！</p>';
+    html += '<p style="color:var(--text-secondary);margin-top:8px;">去刷题模式做更多题目吧~</p>';
+    html += '</div></div>';
+    document.getElementById('tab-wrong').innerHTML = html;
+    return;
+  }
+  html += `<p style="color:var(--text-secondary);margin:0;">共 <strong style="color:var(--danger);">${wrongCount}</strong> 道错题待复习</p>`;
+
+  // Progress stats
+  let mastered = 0, reviewing = 0;
+  qs.forEach(q => {
+    const h = STATE.history[q.id];
+    if (h) {
+      if (h.correct >= h.total) mastered++;
+      else reviewing++;
+    }
+  });
+
+  html += '</div>'; // close header
+
+  // Navigation state
+  if (STATE.wrongIndex === undefined || STATE.wrongIndex >= wrongCount) STATE.wrongIndex = 0;
+  const idx = STATE.wrongIndex;
+  const q = qs[idx];
+
+  // Progress bar
+  html += `<div class="progress-bar"><div class="fill" style="width:${((idx+1)/wrongCount*100).toFixed(1)}%"></div></div>`;
+  html += `<div class="question-meta" style="margin-top:8px;">第 ${idx+1} / ${wrongCount} 题</div>`;
+
+  // Question
+  html += `<div class="question-text">${escHtml(q.question)}</div>`;
+
+  // History hint
+  const hist = STATE.history[q.id];
+  if (hist) {
+    const pct = hist.total > 0 ? (hist.correct/hist.total*100).toFixed(0) : 0;
+    html += `<div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:8px;">📊 历史正确率: ${hist.correct}/${hist.total} (${pct}%)</div>`;
+  }
+
+  // Selection hint
+  html += `<div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:8px;">💡 点击选项选择你的答案，然后提交</div>`;
+
+  // Options
+  html += '<div class="options">';
+  q.options.forEach((opt, oi) => {
+    const letter = String.fromCharCode(65 + oi);
+    html += `<div class="option" data-letter="${letter}" onclick="wrongSelect(this, '${letter}')">${escHtml(opt)}</div>`;
+  });
+  html += '</div>';
+
+  // Submit
+  html += '<div class="submit-area">';
+  html += `<button class="submit-btn primary" id="btn-wrong-submit" onclick="wrongSubmit()">📝 提交答案</button>`;
+  html += '</div>';
+
+  // Answer reveal
+  html += '<div class="answer-reveal" id="wrong-reveal"></div>';
+
+  // Navigation
+  html += '<div class="nav-buttons">';
+  html += `<button class="nav-btn" onclick="wrongPrev()" ${idx<=0?'disabled':''}>← 上一题</button>`;
+  html += `<button class="nav-btn" onclick="wrongNext()" ${idx>=wrongCount-1?'disabled':''}>下一题 →</button>`;
+  html += '</div>';
+
+  html += '</div>'; // card
+  document.getElementById('tab-wrong').innerHTML = html;
+}
+
+function wrongSelect(el, letter) {
+  if (STATE.wrongShown) return;
+  el.parentElement.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+  el.classList.add('selected');
+}
+
+function wrongSubmit() {
+  if (STATE.wrongShown) return;
+  const qs = getFilteredQuestions('wrong', '');
+  const q = qs[STATE.wrongIndex];
+  if (!q) return;
+
+  const reveal = document.getElementById('wrong-reveal');
+  const options = document.querySelectorAll('#tab-wrong .option');
+  const btn = document.getElementById('btn-wrong-submit');
+
+  const selected = [];
+  options.forEach(o => {
+    if (o.classList.contains('selected')) selected.push(o.dataset.letter);
+  });
+
+  if (selected.length === 0) {
+    reveal.innerHTML = '<span style="color:var(--warning);">⚠️ 请先选择一个答案再提交</span>';
+    reveal.classList.add('show', 'wrong-reveal');
+    setTimeout(() => reveal.classList.remove('show', 'wrong-reveal'), 2000);
+    return;
+  }
+
+  STATE.wrongShown = true;
+  const isCorrect = checkAnswer(q, selected);
+
+  // Mark options
+  const answerLetters = getAnswerAsLetters(q);
+  options.forEach(o => {
+    const letter = o.dataset.letter;
+    if (answerLetters.includes(letter)) o.classList.add('correct');
+    if (selected.includes(letter) && !answerLetters.includes(letter)) o.classList.add('wrong');
+    if (!answerLetters.includes(letter)) o.classList.add('show-correct');
+  });
+
+  // Show result
+  const correctAnswer = normalizeAnswer(q, q.answer);
+  const userAnswer = userAnswerToText(q, selected);
+
+  if (isCorrect) {
+    reveal.innerHTML = `<div class="grade-banner correct-banner">
+      <span class="grade-icon">🎉</span><span class="grade-text">回答正确！</span>
+      <span style="font-size:0.9rem;color:var(--success);">答案：${correctAnswer}</span></div>`;
+    reveal.className = 'answer-reveal show grade-correct';
+  } else {
+    reveal.innerHTML = `<div class="grade-banner wrong-banner">
+      <span class="grade-icon">❌</span><span class="grade-text">回答错误</span>
+      <div class="grade-compare">
+        <div class="grade-row"><span class="grade-label">你的答案：</span><span class="grade-val wrong-val">${userAnswer}</span></div>
+        <div class="grade-row"><span class="grade-label">正确答案：</span><span class="grade-val correct-val">${correctAnswer}</span></div>
+      </div></div>`;
+    reveal.className = 'answer-reveal show grade-wrong';
+  }
+
+  btn.textContent = isCorrect ? '✅ 正确！' : '❌ 错误';
+  btn.className = isCorrect ? 'submit-btn correct' : 'submit-btn wrong';
+  btn.disabled = true;
+
+  recordAnswer(q.id, selected, isCorrect);
+}
+
+function wrongPrev() {
+  STATE.wrongShown = false;
+  STATE.wrongIndex--;
+  renderWrong();
+}
+
+function wrongNext() {
+  STATE.wrongShown = false;
+  STATE.wrongIndex++;
+  renderWrong();
+}
+
+// ============================================================
 // BROWSE MODE
 // ============================================================
 function renderBrowse() {
   const qs = getFilteredQuestions(STATE.browseFilter, STATE.browseSearch);
   let html = '<div class="card"><div class="filters">';
-  const filters = [['all', '全部'], ['single', '单选'], ['multi', '多选'], ['truefalse', '判断']];
+  const filters = [['all', '全部'], ['single', '单选'], ['multi', '多选'], ['truefalse', '判断'], ['wrong', '📝 错题']];
   filters.forEach(([val, label]) => {
     const active = STATE.browseFilter === val ? ' active' : '';
     html += `<button class="filter-btn${active}" onclick="setBrowseFilter('${val}')">${label}</button>`;
