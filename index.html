@@ -456,6 +456,7 @@ const STATE = {
   // Wrong questions mode
   wrongIndex: 0,
   wrongShown: false,
+  wrongFilter: 'all',
 };
 
 // Load history from localStorage
@@ -488,6 +489,9 @@ function getFilteredQuestions(filter, search) {
   if (filter === 'wrong') {
     const wrongIds = new Set(getWrongQuestionIds());
     qs = qs.filter(q => wrongIds.has(q.id));
+    if (STATE.wrongFilter === 'single') qs = qs.filter(q => q.type === 'single');
+    if (STATE.wrongFilter === 'multi') qs = qs.filter(q => q.type === 'multi');
+    if (STATE.wrongFilter === 'truefalse') qs = qs.filter(q => q.type === 'truefalse');
   } else {
     if (filter === 'single') qs = qs.filter(q => q.type === 'single');
     if (filter === 'multi') qs = qs.filter(q => q.type === 'multi');
@@ -1143,32 +1147,55 @@ function resetQuiz() {
 // WRONG QUESTIONS RETRY MODE
 // ============================================================
 function renderWrong() {
-  const qs = getFilteredQuestions('wrong', '');
-  const wrongCount = qs.length;
+  // Compute total wrong questions (unfiltered by type)
+  const wrongIds = new Set(getWrongQuestionIds());
+  const allWrong = QUESTION_BANK.filter(q => wrongIds.has(q.id));
+  const totalWrongCount = allWrong.length;
+
+  // Compute counts by type for filter buttons (always, even when 0)
+  const countsByType = {
+    all: allWrong.length,
+    single: allWrong.filter(q => q.type === 'single').length,
+    multi: allWrong.filter(q => q.type === 'multi').length,
+    truefalse: allWrong.filter(q => q.type === 'truefalse').length,
+  };
 
   let html = '<div class="card">';
 
   // Header
   html += '<div style="text-align:center;padding:16px 0;">';
   html += '<h2 style="margin:0 0 8px 0;">🔄 错题重刷</h2>';
-  if (wrongCount === 0) {
+
+  // Always show type filter buttons
+  html += '<div class="filters" style="justify-content:center;margin-top:8px;margin-bottom:4px;">';
+  const wrongFilters = [['all', '全部'], ['single', '单选题'], ['multi', '多选题'], ['truefalse', '判断题']];
+  wrongFilters.forEach(([val, label]) => {
+    const active = STATE.wrongFilter === val ? ' active' : '';
+    html += `<button class="filter-btn${active}" onclick="setWrongFilter('${val}')">${label} (${countsByType[val]})</button>`;
+  });
+  html += '</div>';
+
+  // No wrong questions at all
+  if (totalWrongCount === 0) {
     html += '<p style="color:var(--success);font-size:1.1rem;">🎉 太棒了！你没有错题，所有已做题都已掌握！</p>';
     html += '<p style="color:var(--text-secondary);margin-top:8px;">去刷题模式做更多题目吧~</p>';
     html += '</div></div>';
     document.getElementById('tab-wrong').innerHTML = html;
     return;
   }
+
+  // Get type-filtered questions
+  const qs = getFilteredQuestions('wrong', '');
+  const wrongCount = qs.length;
   html += `<p style="color:var(--text-secondary);margin:0;">共 <strong style="color:var(--danger);">${wrongCount}</strong> 道错题待复习</p>`;
 
-  // Progress stats
-  let mastered = 0, reviewing = 0;
-  qs.forEach(q => {
-    const h = STATE.history[q.id];
-    if (h) {
-      if (h.correct >= h.total) mastered++;
-      else reviewing++;
-    }
-  });
+  // Current type has no wrong questions — show hint but keep filter buttons
+  if (wrongCount === 0) {
+    html += '<p style="color:var(--text-secondary);margin-top:12px;">当前题型没有错题，请切换筛选</p>';
+    html += '</div></div>';
+    document.getElementById('tab-wrong').innerHTML = html;
+    return;
+  }
 
   html += '</div>'; // close header
 
@@ -1295,6 +1322,13 @@ function wrongPrev() {
 function wrongNext() {
   STATE.wrongShown = false;
   STATE.wrongIndex++;
+  renderWrong();
+}
+
+function setWrongFilter(val) {
+  STATE.wrongFilter = val;
+  STATE.wrongIndex = 0;
+  STATE.wrongShown = false;
   renderWrong();
 }
 
