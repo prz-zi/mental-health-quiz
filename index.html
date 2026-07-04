@@ -1219,7 +1219,8 @@ function renderWrong() {
   }
 
   // Selection hint
-  html += `<div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:8px;">💡 点击选项选择你的答案，然后提交</div>`;
+  const hintText = q.type === 'multi' ? '💡 多选题：点击选项可多选，再次点击取消，然后提交' : '💡 点击选项选择你的答案，然后提交';
+  html += `<div style="font-size:0.85rem;color:var(--text-secondary);margin-bottom:8px;">${hintText}</div>`;
 
   // Options
   html += '<div class="options">';
@@ -1249,8 +1250,16 @@ function renderWrong() {
 
 function wrongSelect(el, letter) {
   if (STATE.wrongShown) return;
-  el.parentElement.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
-  el.classList.add('selected');
+  const qs = getFilteredQuestions('wrong', '');
+  const q = qs[STATE.wrongIndex];
+  if (q && q.type === 'multi') {
+    // Multi-select: toggle the clicked option
+    el.classList.toggle('selected');
+  } else {
+    // Single-select: clear others, select only this one
+    el.parentElement.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
+    el.classList.add('selected');
+  }
 }
 
 function wrongSubmit() {
@@ -1269,7 +1278,7 @@ function wrongSubmit() {
   });
 
   if (selected.length === 0) {
-    reveal.innerHTML = '<span style="color:var(--warning);">⚠️ 请先选择一个答案再提交</span>';
+    reveal.innerHTML = '<span style="color:var(--warning);">⚠️ 请先选择答案再提交</span>';
     reveal.classList.add('show', 'wrong-reveal');
     setTimeout(() => reveal.classList.remove('show', 'wrong-reveal'), 2000);
     return;
