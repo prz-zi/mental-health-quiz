@@ -521,14 +521,44 @@ function typeLabel(type) {
 
 // ===== Check Answer =====
 function checkAnswer(question, userAnswer) {
+  // For truefalse questions, convert user letters (A/B) to option text (对/错) for comparison
+  let userAns = [...userAnswer];
+  if (question.type === 'truefalse') {
+    userAns = userAns.map(letter => {
+      const idx = letter.charCodeAt(0) - 65;
+      return (idx >= 0 && idx < question.options.length) ? question.options[idx] : letter;
+    });
+  }
   const correct = question.answer.sort().join(',');
-  const user = [...userAnswer].sort().join(',');
+  const user = userAns.sort().join(',');
   return correct === user;
+}
+
+// Get answer as letters (for highlighting correct options in UI)
+function getAnswerAsLetters(q) {
+  if (q.type === 'truefalse') {
+    return q.answer.map(a => {
+      const idx = q.options.indexOf(a);
+      return idx >= 0 ? String.fromCharCode(65 + idx) : a;
+    });
+  }
+  return q.answer;
+}
+
+// Convert user's selected letters to option text for display (truefalse: A/B → 对/错)
+function userAnswerToText(q, letters) {
+  if (q.type === 'truefalse') {
+    return letters.map(l => {
+      const idx = l.charCodeAt(0) - 65;
+      return (idx >= 0 && idx < q.options.length) ? q.options[idx] : l;
+    }).join(', ');
+  }
+  return letters.join(', ');
 }
 
 function normalizeAnswer(q, ans) {
   // For display: normalize different answer formats
-  if (q.type === 'truefalse') return ans;
+  if (q.type === 'truefalse') return ans.join(', ');
   return ans.join(', ');
 }
 
@@ -673,22 +703,23 @@ function practiceSubmit() {
   const isCorrect = checkAnswer(q, selected);
 
   // Mark options
+  const answerLetters = getAnswerAsLetters(q);
   options.forEach(o => {
     const letter = o.dataset.letter;
-    if (q.answer.includes(letter)) {
+    if (answerLetters.includes(letter)) {
       o.classList.add('correct');
     }
-    if (selected.includes(letter) && !q.answer.includes(letter)) {
+    if (selected.includes(letter) && !answerLetters.includes(letter)) {
       o.classList.add('wrong');
     }
-    if (!q.answer.includes(letter)) {
+    if (!answerLetters.includes(letter)) {
       o.classList.add('show-correct');
     }
   });
 
   // Show grading result
   const correctAnswer = normalizeAnswer(q, q.answer);
-  const userAnswer = selected.join(', ');
+  const userAnswer = userAnswerToText(q, selected);
 
   if (isCorrect) {
     reveal.innerHTML = `
@@ -868,7 +899,8 @@ function renderQuizQuestions() {
       const userAns = STATE.quizAnswers[qi] || [];
       let cls = '';
       if (graded !== undefined) {
-        if (q.answer.includes(letter)) cls = ' correct';
+        const answerLetters = getAnswerAsLetters(q);
+        if (answerLetters.includes(letter)) cls = ' correct';
         else if (userAns.includes(letter)) cls = ' wrong';
         else cls = ' show-correct';
       } else if (userAns.includes(letter)) {
@@ -888,7 +920,7 @@ function renderQuizQuestions() {
     if (graded === true) {
       html += `<span style="color:var(--success);font-weight:600;">🎉 回答正确！答案：${normalizeAnswer(q, q.answer)}</span>`;
     } else if (graded === false) {
-      const userAns = (STATE.quizAnswers[qi] || []).join(', ') || '未选择';
+      const userAns = userAnswerToText(q, (STATE.quizAnswers[qi] || [])) || '未选择';
       html += `<span style="color:var(--danger);font-weight:600;">❌ 你的答案：${userAns}</span>`;
       html += `<span style="color:var(--success);font-weight:600;margin-left:12px;">正确答案：${normalizeAnswer(q, q.answer)}</span>`;
     }
@@ -1064,7 +1096,7 @@ function renderQuizResults() {
       html += `<div style="text-align:left;margin-top:16px;padding:12px;background:#fef2f2;border-radius:8px;">`;
       html += `<strong>${qi+1}.</strong> ${typeBadge(q.type)} ${escHtml(q.question)}`;
       html += '<div style="margin-top:8px;">';
-      html += `<span style="color:var(--danger);">你的答案: ${userAns.length ? userAns.join(', ') : '未作答'}</span>`;
+      html += `<span style="color:var(--danger);">你的答案: ${userAns.length ? userAnswerToText(q, userAns) : '未作答'}</span>`;
       html += `<span style="color:var(--success);margin-left:12px;">正确答案: ${normalizeAnswer(q, q.answer)}</span>`;
       html += '</div></div>';
     });
