@@ -55,6 +55,19 @@ body {
 }
 .header-stats span { white-space: nowrap; }
 .header-stats strong { color: var(--text); }
+.header-clear-btn {
+  padding: 4px 10px;
+  border: 1px solid var(--danger);
+  background: transparent;
+  color: var(--danger);
+  border-radius: 6px;
+  cursor: pointer;
+  font-size: 0.78rem;
+  font-weight: 500;
+  transition: all 0.2s;
+  white-space: nowrap;
+}
+.header-clear-btn:hover { background: var(--danger); color: #fff; }
 
 /* ===== Tabs ===== */
 .tabs {
@@ -406,6 +419,7 @@ body {
     <div class="header-stats">
       <span>题库: <strong id="total-count">940</strong> 题</span>
       <span>已做: <strong id="done-count">0</strong> 题</span>
+      <button class="header-clear-btn" onclick="resetStats()">🗑 清除记录</button>
     </div>
   </div>
 
