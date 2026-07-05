@@ -448,7 +448,7 @@ const QUESTION_BANK = [{"id":1,"type":"single","question":")激情的积极作�
 const STATE = {
   currentTab: 'practice',
   // Practice mode
-  practiceFilter: 'all',  // 'all' | 'single' | 'multi' | 'truefalse'
+  practiceFilter: 'all',  // 'all' | 'single' | 'multi' | 'judge'
   practiceSearch: '',
   practiceIndex: 0,
   practiceShown: false,   // answer revealed?
@@ -505,11 +505,11 @@ function getFilteredQuestions(filter, search) {
     qs = qs.filter(q => wrongIds.has(q.id));
     if (STATE.wrongFilter === 'single') qs = qs.filter(q => q.type === 'single');
     if (STATE.wrongFilter === 'multi') qs = qs.filter(q => q.type === 'multi');
-    if (STATE.wrongFilter === 'truefalse') qs = qs.filter(q => q.type === 'truefalse');
+    if (STATE.wrongFilter === 'judge') qs = qs.filter(q => q.type === 'judge');
   } else {
     if (filter === 'single') qs = qs.filter(q => q.type === 'single');
     if (filter === 'multi') qs = qs.filter(q => q.type === 'multi');
-    if (filter === 'truefalse') qs = qs.filter(q => q.type === 'truefalse');
+    if (filter === 'judge') qs = qs.filter(q => q.type === 'judge');
   }
   if (search.trim()) {
     const s = search.trim().toLowerCase();
@@ -557,9 +557,9 @@ function typeLabel(type) {
 
 // ===== Check Answer =====
 function checkAnswer(question, userAnswer) {
-  // For truefalse questions, convert user letters (A/B) to option text (对/错) for comparison
+  // For judge questions, convert user letters (A/B) to option text (对/错) for comparison
   let userAns = [...userAnswer];
-  if (question.type === 'truefalse') {
+  if (question.type === 'judge') {
     userAns = userAns.map(letter => {
       const idx = letter.charCodeAt(0) - 65;
       return (idx >= 0 && idx < question.options.length) ? question.options[idx] : letter;
@@ -572,7 +572,7 @@ function checkAnswer(question, userAnswer) {
 
 // Get answer as letters (for highlighting correct options in UI)
 function getAnswerAsLetters(q) {
-  if (q.type === 'truefalse') {
+  if (q.type === 'judge') {
     return q.answer.map(a => {
       const idx = q.options.indexOf(a);
       return idx >= 0 ? String.fromCharCode(65 + idx) : a;
@@ -581,9 +581,9 @@ function getAnswerAsLetters(q) {
   return q.answer;
 }
 
-// Convert user's selected letters to option text for display (truefalse: A/B → 对/错)
+// Convert user's selected letters to option text for display (judge: A/B → 对/错)
 function userAnswerToText(q, letters) {
-  if (q.type === 'truefalse') {
+  if (q.type === 'judge') {
     return letters.map(l => {
       const idx = l.charCodeAt(0) - 65;
       return (idx >= 0 && idx < q.options.length) ? q.options[idx] : l;
@@ -594,7 +594,7 @@ function userAnswerToText(q, letters) {
 
 function normalizeAnswer(q, ans) {
   // For display: normalize different answer formats
-  if (q.type === 'truefalse') return ans.join(', ');
+  if (q.type === 'judge') return ans.join(', ');
   return ans.join(', ');
 }
 
@@ -624,7 +624,7 @@ function renderPractice() {
   // Filters
   html += '<div class="card"><div class="filters">';
   const filters = [
-    ['all', '全部'], ['single', '单选'], ['multi', '多选'], ['truefalse', '判断'], ['wrong', '📝 错题']
+    ['all', '全部'], ['single', '单选'], ['multi', '多选'], ['judge', '判断'], ['wrong', '📝 错题']
   ];
   filters.forEach(([val, label]) => {
     const active = STATE.practiceFilter === val ? ' active' : '';
@@ -700,7 +700,7 @@ function practiceSelect(el, letter) {
   const q = getCurrentQuestion();
   if (!q) return;
 
-  if (q.type === 'single' || q.type === 'truefalse') {
+  if (q.type === 'single' || q.type === 'judge') {
     // Single selection
     el.parentElement.querySelectorAll('.option').forEach(o => o.classList.remove('selected'));
     el.classList.add('selected');
@@ -851,7 +851,7 @@ function renderQuizSetup() {
     <option value="all" ${STATE.quizFilter==='all'?'selected':''}>全部 (${QUESTION_BANK.length}题)</option>
     <option value="single" ${STATE.quizFilter==='single'?'selected':''}>单选题 (${QUESTION_BANK.filter(q=>q.type==='single').length}题)</option>
     <option value="multi" ${STATE.quizFilter==='multi'?'selected':''}>多选题 (${QUESTION_BANK.filter(q=>q.type==='multi').length}题)</option>
-    <option value="truefalse" ${STATE.quizFilter==='truefalse'?'selected':''}>判断题 (${QUESTION_BANK.filter(q=>q.type==='truefalse').length}题)</option>
+    <option value="judge" ${STATE.quizFilter==='judge'?'selected':''}>判断题 (${QUESTION_BANK.filter(q=>q.type==='judge').length}题)</option>
     <option value="wrong" ${STATE.quizFilter==='wrong'?'selected':''}>🔄 错题重刷 (${getWrongQuestionIds().length}题)</option>
   </select>`;
   html += '<label>题目数量:</label>';
@@ -990,7 +990,7 @@ function quizSelect(qi, letter, el) {
 
   if (!STATE.quizAnswers[qi]) STATE.quizAnswers[qi] = [];
 
-  if (q.type === 'single' || q.type === 'truefalse') {
+  if (q.type === 'single' || q.type === 'judge') {
     // Clear previous selection
     STATE.quizAnswers[qi] = [letter];
     const parent = el.parentElement;
@@ -1171,7 +1171,7 @@ function renderWrong() {
     all: allWrong.length,
     single: allWrong.filter(q => q.type === 'single').length,
     multi: allWrong.filter(q => q.type === 'multi').length,
-    truefalse: allWrong.filter(q => q.type === 'truefalse').length,
+    judge: allWrong.filter(q => q.type === 'judge').length,
   };
 
   let html = '<div class="card">';
@@ -1182,7 +1182,7 @@ function renderWrong() {
 
   // Always show type filter buttons
   html += '<div class="filters" style="justify-content:center;margin-top:8px;margin-bottom:4px;">';
-  const wrongFilters = [['all', '全部'], ['single', '单选题'], ['multi', '多选题'], ['truefalse', '判断题']];
+  const wrongFilters = [['all', '全部'], ['single', '单选题'], ['multi', '多选题'], ['judge', '判断题']];
   wrongFilters.forEach(([val, label]) => {
     const active = STATE.wrongFilter === val ? ' active' : '';
     html += `<button class="filter-btn${active}" onclick="setWrongFilter('${val}')">${label} (${countsByType[val]})</button>`;
@@ -1361,7 +1361,7 @@ function setWrongFilter(val) {
 function renderBrowse() {
   const qs = getFilteredQuestions(STATE.browseFilter, STATE.browseSearch);
   let html = '<div class="card"><div class="filters">';
-  const filters = [['all', '全部'], ['single', '单选'], ['multi', '多选'], ['truefalse', '判断'], ['wrong', '📝 错题']];
+  const filters = [['all', '全部'], ['single', '单选'], ['multi', '多选'], ['judge', '判断'], ['wrong', '📝 错题']];
   filters.forEach(([val, label]) => {
     const active = STATE.browseFilter === val ? ' active' : '';
     html += `<button class="filter-btn${active}" onclick="setBrowseFilter('${val}')">${label}</button>`;
@@ -1441,7 +1441,7 @@ function setBrowseSearch(val) {
 function renderStats() {
   const doneCount = Object.keys(STATE.history).length;
   let totalAttempts = 0, totalCorrect = 0;
-  const byType = { single: {c:0,t:0}, multi: {c:0,t:0}, truefalse: {c:0,t:0} };
+  const byType = { single: {c:0,t:0}, multi: {c:0,t:0}, judge: {c:0,t:0} };
 
   for (const [qid, h] of Object.entries(STATE.history)) {
     totalAttempts += h.total;
@@ -1462,7 +1462,7 @@ function renderStats() {
   html += '</div>';
 
   html += '<div class="stats-grid">';
-  ['single','multi','truefalse'].forEach(type => {
+  ['single','multi','judge'].forEach(type => {
     const {c, t} = byType[type];
     const pct = t > 0 ? (c / t * 100).toFixed(1) : '-';
     html += `<div class="stat-card ${type}-stat"><div class="stat-num">${pct}%</div><div class="stat-lbl">${typeLabel(type)}题正确率 (${c}/${t})</div></div>`;
